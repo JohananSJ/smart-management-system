@@ -16,3 +16,8 @@ static/uploads/
 
 # VS Code
 .vscode/
+# Logs
+app.log
+
+# Flask session files
+flask_session/
