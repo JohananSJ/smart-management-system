@@ -67,5 +67,65 @@ app.register_blueprint(tasks_bp)
 app.register_blueprint(progress_bp)
 app.register_blueprint(resources_bp)
 
+from flask import render_template, session, redirect, url_for
+
+# ── Page Routes ────────────────────────────────────────────────────────────────
+
+@app.route('/')
+def index():
+    if session.get('user_id'):
+        return redirect('/dashboard')
+    return redirect('/login')
+
+@app.route('/login')
+def login_page():
+    if session.get('user_id'):
+        return redirect('/dashboard')
+    return render_template('auth/login.html')
+
+@app.route('/register')
+def register_page():
+    if session.get('user_id'):
+        return redirect('/dashboard')
+    return render_template('auth/register.html')
+
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('dashboard/dashboard.html', active_page='dashboard')
+
+@app.route('/tasks')
+def tasks_page():
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('tasks/tasks.html', active_page='tasks')
+
+@app.route('/progress')
+def progress_page():
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('learning/learning.html', active_page='learning')
+
+@app.route('/resources')
+def resources_page():
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('resources/resources.html', active_page='resources')
+
+@app.route('/profile')
+def profile_page():
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('dashboard/profile.html', active_page='profile')
+
+@app.route('/admin')
+def admin_page():
+    if not session.get('user_id'):
+        return redirect('/login')
+    if session.get('user_role') != 'admin':
+        return redirect('/dashboard')
+    return render_template('admin/admin.html', active_page='admin')
+
 if __name__ == '__main__':
     app.run(debug=True)
