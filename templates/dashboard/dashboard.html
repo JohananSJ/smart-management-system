@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SMS — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple:        #8B5CF6;
+      --purple-glow:   rgba(139,92,246,0.4);
+      --purple-soft:   rgba(139,92,246,0.15);
+      --purple-border: rgba(139,92,246,0.6);
+      --red:           #EF4444;
+      --amber:         #F59E0B;
+      --green:         #22C55E;
+      --white-glass:   rgba(255,255,255,0.07);
+      --white-border:  rgba(255,255,255,0.15);
+      --white-text:    rgba(255,255,255,0.9);
+      --white-muted:   rgba(255,255,255,0.45);
+      --white-subtle:  rgba(255,255,255,0.08);
+      --font:          'Inter', sans-serif;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      font-family: var(--font);
+      color: var(--white-text);
+      background: #000;
+      overflow-x: hidden;
+    }
+
+    body {
+      background: radial-gradient(ellipse at top, rgba(139,92,246,0.08) 0%, #000 70%);
+    }
+
+    /* ── Layout ── */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: rgba(255,255,255,0.03);
+      border-right: 1px solid rgba(255,255,255,0.07);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .app-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 4px;
+    }
+    .app-sub {
+      font-size: 10px;
+      color: var(--white-muted);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-group-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 8px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--white-muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .nav-item i { font-size: 17px; }
+    .nav-item:hover {
+      color: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.05);
+    }
+    .nav-item.active {
+      color: #fff;
+      background: rgba(139,92,246,0.15);
+      border-right: 2px solid var(--purple);
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(139,92,246,0.1) 0%, rgba(139,92,246,0) 100%);
+      border-radius: 10px;
+      mix-blend-mode: difference;
+    }
+    .nav-item::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.04);
+      transform: skewX(-20deg);
+      transition: left 0.4s ease;
+      pointer-events: none;
+    }
+    .nav-item:hover::after { left: 130%; }
+
+    .sidebar-user {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--purple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--white-text); }
+    .user-role { font-size: 10px; color: var(--white-muted); }
+
+    /* ── Main ── */
+    .main-content {
+      padding: 32px;
+      overflow-y: auto;
+      animation: fadeIn 0.4s ease both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .page-title { font-size: 22px; font-weight: 600; color: #fff; }
+    .page-subtitle { font-size: 13px; color: var(--white-muted); margin-top: 3px; }
+
+    /* ── Glass Card ── */
+    .card {
+      background: var(--white-glass);
+      border: 1px solid var(--white-border);
+      border-radius: 17px;
+      padding: 20px;
+      backdrop-filter: blur(6px);
+      box-shadow: 12px 17px 51px rgba(0,0,0,0.22);
+      transition: all 0.5s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: var(--purple-border);
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px var(--purple-glow);
+    }
+    .card:active { transform: scale(0.95) rotateZ(1.7deg); }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.05);
+      transform: skewX(-20deg);
+      transition: left 0.45s ease;
+      pointer-events: none;
+    }
+    .card:hover::before { left: 130%; }
+
+    /* ── Stat Cards ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card { cursor: pointer; }
+
+    .stat-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: var(--purple-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .stat-icon i { font-size: 20px; color: var(--purple); }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--white-muted);
+      margin-top: 5px;
+    }
+
+    /* Skeleton */
+    .skeleton {
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      animation: skeleton-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes skeleton-pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+    .skel-val  { height: 28px; width: 60px; margin-bottom: 8px; }
+    .skel-lbl  { height: 12px; width: 90px; }
+
+    /* ── Bottom Grid ── */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ── Today's Tasks ── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white-text);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-title a {
+      font-size: 11px;
+      color: var(--purple);
+      text-decoration: none;
+      font-weight: 400;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .task-item:last-child { border-bottom: none; }
+
+    .task-text {
+      flex: 1;
+      font-size: 13px;
+      color: var(--white-text);
+    }
+    .task-text.done {
+      text-decoration: line-through;
+      color: var(--white-muted);
+    }
+
+    /* Custom checkbox */
+    .checkbox-wrap {
+      display: block;
+      cursor: pointer;
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 5px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: box-shadow 0.3s;
+    }
+    .checkbox-wrap:hover { box-shadow: 0 0 8px var(--purple-glow); }
+    .checkbox-wrap input[type=checkbox] {
+      position: absolute;
+      left: 50px;
+      visibility: hidden;
+    }
+    .checkbox-wrap .cb-fill {
+      width: 40px; height: 40px;
+      background: var(--purple);
+      top: -34px; left: -34px;
+      position: absolute;
+      transform: rotateZ(45deg);
+      z-index: 100;
+      transition: 300ms ease;
+    }
+    .checkbox-wrap input[type=checkbox]:checked + .cb-fill {
+      left: -6px; top: -6px;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 50px;
+      font-size: 10px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-high     { background: rgba(239,68,68,0.15);  color: #FCA5A5; }
+    .badge-medium   { background: rgba(245,158,11,0.15); color: #FCD34D; }
+    .badge-low      { background: rgba(34,197,94,0.15);  color: #86EFAC; }
+    .badge-done     { background: rgba(34,197,94,0.15);  color: #86EFAC; }
+    .badge-progress { background: rgba(245,158,11,0.15); color: #FCD34D; }
+
+    /* ── Progress bars ── */
+    .progress-item { margin-bottom: 14px; }
+    .progress-item:last-child { margin-bottom: 0; }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .progress-name { font-size: 12px; color: var(--white-text); }
+    .progress-pct  { font-size: 12px; color: var(--purple); font-weight: 500; }
+    .progress-track {
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--purple);
+      transition: width 0.8s ease;
+      width: 0%;
+    }
+
+    /* ── Activity Feed ── */
+    .activity-item {
+      display: flex;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      align-items: flex-start;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--purple);
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .activity-dot.red   { background: var(--red); }
+    .activity-dot.green { background: var(--green); }
+    .activity-dot.amber { background: var(--amber); }
+    .activity-text { font-size: 12px; color: var(--white-text); line-height: 1.5; }
+    .activity-time { font-size: 11px; color: var(--white-muted); margin-top: 2px; }
+
+    /* ── Streak Card ── */
+    .streak-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .streak-fire { font-size: 36px; line-height: 1; }
+    .streak-count {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+    .streak-label { font-size: 12px; color: var(--white-muted); margin-top: 3px; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.4); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      top: 24px; right: 24px;
+      font-size: 13px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 9999;
+      border: 1px solid transparent;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); color: #86EFAC; }
+    .toast.error   { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #FCA5A5; }
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="app-title">SMS</div>
+      <div class="app-sub">Smart Management System</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <a href="/dashboard" class="nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="/tasks"     class="nav-item"><i class="ti ti-checkbox"></i> Tasks</a>
+      <a href="/progress"  class="nav-item"><i class="ti ti-chart-line"></i> Learning</a>
+      <a href="/resources" class="nav-item"><i class="ti ti-folder-open"></i> Resources</a>
+      <div class="nav-group-label">Account</div>
+      <a href="/profile"   class="nav-item"><i class="ti ti-user"></i> Profile</a>
+      <a href="#" class="nav-item" id="logoutBtn"><i class="ti ti-logout"></i> Logout</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="userAvatar">JO</div>
+      <div>
+        <div class="user-name" id="userName">Johanan</div>
+        <div class="user-role">intern</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle" id="greeting">Good morning! Ready to get things done?</div>
+      </div>
+      <div style="font-size:12px;color:var(--white-muted);" id="todayDate"></div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-grid" id="statGrid">
+      <!-- Skeletons shown first -->
+      <div class="card stat-card">
+        <div class="stat-icon"><i class="ti ti-checkbox"></i></div>
+        <div class="skeleton skel-val" id="skelVal1"></div>
+        <div class="skeleton skel-lbl" id="skelLbl1"></div>
+        <div class="stat-value" id="statTotal"  style="display:none">0</div>
+        <div class="stat-label" id="statTotalL" style="display:none">Total Tasks</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon" style="background:rgba(34,197,94,0.15)"><i class="ti ti-circle-check" style="color:#22C55E"></i></div>
+        <div class="skeleton skel-val" id="skelVal2"></div>
+        <div class="skeleton skel-lbl" id="skelLbl2"></div>
+        <div class="stat-value" id="statDone"  style="display:none">0</div>
+        <div class="stat-label" id="statDoneL" style="display:none">Completed</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon" style="background:rgba(245,158,11,0.15)"><i class="ti ti-clock" style="color:#F59E0B"></i></div>
+        <div class="skeleton skel-val" id="skelVal3"></div>
+        <div class="skeleton skel-lbl" id="skelLbl3"></div>
+        <div class="stat-value" id="statPending"  style="display:none">0</div>
+        <div class="stat-label" id="statPendingL" style="display:none">Pending</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon"><i class="ti ti-chart-line"></i></div>
+        <div class="skeleton skel-val" id="skelVal4"></div>
+        <div class="skeleton skel-lbl" id="skelLbl4"></div>
+        <div class="stat-value" id="statLearn"  style="display:none">0%</div>
+        <div class="stat-label" id="statLearnL" style="display:none">Learning Progress</div>
+      </div>
+    </div>
+
+    <!-- Bottom Grid -->
+    <div class="bottom-grid">
+
+      <!-- Today's Tasks -->
+      <div class="card">
+        <div class="section-title">
+          Today's Tasks
+          <a href="/tasks">View all →</a>
+        </div>
+        <div id="todayTasks">
+          <!-- skeleton -->
+          <div class="skeleton" style="height:14px;margin-bottom:10px;"></div>
+          <div class="skeleton" style="height:14px;margin-bottom:10px;width:80%;"></div>
+          <div class="skeleton" style="height:14px;width:90%;"></div>
+        </div>
+      </div>
+
+      <!-- Learning Progress -->
+      <div class="card">
+        <div class="section-title">
+          Learning Progress
+          <a href="/progress">View all →</a>
+        </div>
+        <div id="learningProgress">
+          <div class="skeleton" style="height:14px;margin-bottom:16px;"></div>
+          <div class="skeleton" style="height:6px;margin-bottom:16px;border-radius:3px;"></div>
+          <div class="skeleton" style="height:14px;margin-bottom:16px;width:80%;"></div>
+          <div class="skeleton" style="height:6px;border-radius:3px;width:80%;"></div>
+        </div>
+      </div>
+
+      <!-- Streak + Activity -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Streak -->
+        <div class="card">
+          <div class="section-title">Streak</div>
+          <div class="streak-card">
+            <div class="streak-fire">🔥</div>
+            <div>
+              <div class="streak-count" id="streakCount">—</div>
+              <div class="streak-label">day streak</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--white-muted);" id="streakMsg">Keep it up!</div>
+        </div>
+
+        <!-- Activity -->
+        <div class="card" style="flex:1;">
+          <div class="section-title">Recent Activity</div>
+          <div id="activityFeed">
+            <div class="skeleton" style="height:12px;margin-bottom:10px;"></div>
+            <div class="skeleton" style="height:12px;margin-bottom:10px;width:85%;"></div>
+            <div class="skeleton" style="height:12px;width:70%;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ── Greeting + Date ──
+  const hour = new Date().getHours();
+  const greetMap = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting').textContent = greetMap + '! Ready to get things done?';
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // ── User avatar initials ──
+  const uName = document.getElementById('userName');
+  const uAvatar = document.getElementById('userAvatar');
+  if (uName && uAvatar) {
+    uAvatar.textContent = uName.textContent.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+  }
+
+  // ── Logout ──
+  document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await fetch('/logout', { method: 'POST' });
+    window.location.href = '/login';
+  });
+
+  // ── Toast ──
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // ── Hide skeletons, show real values ──
+  function revealStat(skelValId, skelLblId, valId, lblId, value, label) {
+    document.getElementById(skelValId).style.display = 'none';
+    document.getElementById(skelLblId).style.display = 'none';
+    const valEl = document.getElementById(valId);
+    const lblEl = document.getElementById(lblId);
+    valEl.textContent = value;
+    lblEl.textContent = label;
+    valEl.style.display = 'block';
+    lblEl.style.display = 'block';
+  }
+
+  // ── Load Tasks ──
+  async function loadTasks() {
+    try {
+      const res  = await fetch('/tasks');
+      const data = await res.json();
+      const tasks = data.tasks || [];
+
+      const total   = tasks.length;
+      const done    = tasks.filter(t => t.status === 'done').length;
+      const pending = tasks.filter(t => t.status !== 'done').length;
+
+      setTimeout(() => {
+        revealStat('skelVal1','skelLbl1','statTotal','statTotalL', total, 'Total Tasks');
+        revealStat('skelVal2','skelLbl2','statDone','statDoneL', done, 'Completed');
+        revealStat('skelVal3','skelLbl3','statPending','statPendingL', pending, 'Pending');
+      }, 600);
+
+      // Today's tasks
+      const today = new Date().toISOString().split('T')[0];
+      const todayTasks = tasks.filter(t => t.due_date && t.due_date.startsWith(today));
+      const container = document.getElementById('todayTasks');
+
+      setTimeout(() => {
+        if (todayTasks.length === 0) {
+          container.innerHTML = '<p style="font-size:13px;color:var(--white-muted);text-align:center;padding:10px 0;">No tasks due today 🎉</p>';
+          return;
+        }
+        container.innerHTML = todayTasks.slice(0,4).map(t => `
+          <div class="task-item">
+            <label class="checkbox-wrap">
+              <input type="checkbox" ${t.status === 'done' ? 'checked' : ''} onchange="toggleTask(${t.id}, this)"/>
+              <div class="cb-fill"></div>
+            </label>
+            <span class="task-text ${t.status === 'done' ? 'done' : ''}">${t.title}</span>
+            <span class="badge badge-${t.priority || 'low'}">${t.priority || 'low'}</span>
+          </div>
+        `).join('');
+      }, 700);
+
+    } catch (err) {
+      document.getElementById('todayTasks').innerHTML = '<p style="font-size:12px;color:var(--white-muted);">Could not load tasks.</p>';
+    }
+  }
+
+  // ── Toggle task ──
+  async function toggleTask(id, checkbox) {
+    const newStatus = checkbox.checked ? 'done' : 'todo';
+    try {
+      await fetch(`/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const label = checkbox.closest('.task-item').querySelector('.task-text');
+      label.classList.toggle('done', checkbox.checked);
+      showToast(checkbox.checked ? 'Task completed! ✓' : 'Task reopened', 'success');
+      loadTasks();
+    } catch (err) {
+      showToast('Could not update task', 'error');
+    }
+  }
+
+  // ── Load Learning Progress ──
+  async function loadProgress() {
+    try {
+      const res  = await fetch('/progress');
+      const data = await res.json();
+      const items = data.progress || [];
+
+      const avgPct = items.length
+        ? Math.round(items.reduce((s, i) => s + (i.percentage || 0), 0) / items.length)
+        : 0;
+
+      setTimeout(() => {
+        revealStat('skelVal4','skelLbl4','statLearn','statLearnL', avgPct + '%', 'Learning Progress');
+      }, 600);
+
+      const container = document.getElementById('learningProgress');
+      setTimeout(() => {
+        if (items.length === 0) {
+          container.innerHTML = '<p style="font-size:13px;color:var(--white-muted);text-align:center;padding:10px 0;">No topics yet. <a href="/progress" style="color:var(--purple)">Add one →</a></p>';
+          return;
+        }
+        container.innerHTML = items.slice(0,3).map(item => `
+          <div class="progress-item">
+            <div class="progress-header">
+              <span class="progress-name">${item.topic}</span>
+              <span class="progress-pct">${item.percentage || 0}%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" data-width="${item.percentage || 0}"></div>
+            </div>
+          </div>
+        `).join('');
+        // animate bars
+        requestAnimationFrame(() => {
+          document.querySelectorAll('.progress-fill').forEach(bar => {
+            bar.style.width = bar.dataset.width + '%';
+          });
+        });
+      }, 700);
+
+    } catch (err) {
+      document.getElementById('learningProgress').innerHTML = '<p style="font-size:12px;color:var(--white-muted);">Could not load progress.</p>';
+    }
+  }
+
+  // ── Streak ──
+  function loadStreak() {
+    const streak = parseInt(localStorage.getItem('sms_streak') || '0');
+    document.getElementById('streakCount').textContent = streak;
+    document.getElementById('streakMsg').textContent =
+      streak === 0 ? 'Start your streak today!' :
+      streak < 3  ? 'Good start! Keep going ' :
+      streak < 7  ? 'You\'re on fire! ' : 'Unstoppable! ';
+
+    // simple streak logic — increment if last visit was yesterday
+    const last = localStorage.getItem('sms_last_visit');
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (last === yesterday) {
+      const newStreak = streak + 1;
+      localStorage.setItem('sms_streak', newStreak);
+      localStorage.setItem('sms_last_visit', today);
+      document.getElementById('streakCount').textContent = newStreak;
+    } else if (last !== today) {
+      if (last && last !== yesterday) {
+        localStorage.setItem('sms_streak', '1');
+      }
+      localStorage.setItem('sms_last_visit', today);
+    }
+  }
+
+  // ── Activity Feed ──
+  async function loadActivity() {
+    // Build from tasks + progress combined
+    try {
+      const [tRes, pRes] = await Promise.all([fetch('/tasks'), fetch('/progress')]);
+      const tData = await tRes.json();
+      const pData = await pRes.json();
+
+      const tasks   = (tData.tasks    || []).slice(0,2);
+      const topics  = (pData.progress || []).slice(0,2);
+
+      const activities = [
+        ...tasks.map(t  => ({ text: `Task "${t.title}" is ${t.status}`,   time: 'Recently', color: t.status === 'done' ? 'green' : 'amber' })),
+        ...topics.map(p => ({ text: `Learning "${p.topic}" at ${p.percentage || 0}%`, time: 'Recently', color: 'purple' })),
+      ];
+
+      const container = document.getElementById('activityFeed');
+      setTimeout(() => {
+        if (activities.length === 0) {
+          container.innerHTML = '<p style="font-size:12px;color:var(--white-muted);">No recent activity yet.</p>';
+          return;
+        }
+        container.innerHTML = activities.map(a => `
+          <div class="activity-item">
+            <div class="activity-dot ${a.color === 'purple' ? '' : a.color}"></div>
+            <div>
+              <div class="activity-text">${a.text}</div>
+              <div class="activity-time">${a.time}</div>
+            </div>
+          </div>
+        `).join('');
+      }, 800);
+
+    } catch (err) {
+      document.getElementById('activityFeed').innerHTML = '<p style="font-size:12px;color:var(--white-muted);">Could not load activity.</p>';
+    }
+  }
+
+  // ── Init ──
+  loadTasks();
+  loadProgress();
+  loadStreak();
+  loadActivity();
+</script>
+
+</body>
+</html>

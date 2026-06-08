@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SMS — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    :root {
+      --purple: #8B5CF6;
+      --purple-glow: rgba(139,92,246,0.4);
+      --purple-border: rgba(139,92,246,0.6);
+      --white-glass: rgba(255,255,255,0.07);
+      --white-border: rgba(255,255,255,0.15);
+      --white-text: rgba(255,255,255,0.9);
+      --white-muted: rgba(255,255,255,0.45);
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(
+        ellipse at top,
+        rgba(139, 92, 246, 0.08) 0%,
+        #000000 70%
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Dot field canvas */
+    #dot-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    #dot-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Center container */
+    .auth-container {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    /* SMS branding above card */
+    .brand {
+      text-align: center;
+    }
+
+    .brand h1 {
+      font-size: 2.8rem;
+      font-weight: 600;
+      color: #000;
+      -webkit-text-stroke: 1px #000;
+       letter-spacing: 0.1em;
+    }
+
+    .brand p {
+      font-size: 0.85rem;
+      font-weight: 300;
+      color: #000;
+      -webkit-text-stroke: 0.5px #000;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Glass card */
+    .card {
+      width: 380px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 36px 32px;
+      backdrop-filter: blur(12px);
+      box-shadow:
+        0 8px 32px rgba(0,0,0,0.4),
+        0 2px 8px rgba(0,0,0,0.3);
+      animation: cardIn 0.5s ease-in-out;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s;
+    }
+
+    .card:hover {
+      border-color: var(--purple-border);
+    }
+
+    .card:active {
+      transform: scale(0.98) rotateZ(1.7deg);
+    }
+
+    /* Liquid glass shimmer on card */
+    .card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: rgba(255,255,255,0.04);
+      transform: skewX(-20deg);
+      transition: left 0.6s ease;
+      pointer-events: none;
+    }
+
+    .card:hover::after {
+      left: 130%;
+    }
+
+    @keyframes cardIn {
+      from {
+        transform: rotateX(-30deg);
+        opacity: 0;
+      }
+      to {
+        transform: rotateX(0deg);
+        opacity: 1;
+      }
+    }
+
+    /* Form */
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--white-text);
+      margin-bottom: 8px;
+    }
+
+    /* Input wrapper */
+    .input-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      box-shadow:
+        inset 2px 5px 10px rgba(0,0,0,0.3),
+        0px 2px 4px rgba(0,0,0,0.3);
+      color: var(--white-text);
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition:
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .input::placeholder {
+      color: var(--white-muted);
+    }
+
+    .input:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(139,92,246,0.2);
+    }
+
+    .input:focus {
+      border-color: var(--purple-border);
+      box-shadow:
+        0 0 0 3px var(--purple-glow),
+        inset 2px 5px 10px rgba(0,0,0,0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Liquid glass shimmer on inputs */
+    .input-wrap::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: rgba(255,255,255,0.06);
+      transform: skewX(-20deg);
+      transition: left 0.4s ease;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .input-wrap:hover::after {
+      left: 130%;
+    }
+
+    /* Forgot password */
+    .forgot {
+      text-align: right;
+      margin-top: -8px;
+    }
+
+    .forgot a {
+      font-size: 0.78rem;
+      color: var(--white-muted);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .forgot a:hover {
+      color: var(--purple);
+    }
+
+    /* Submit button — Electric Purple */
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 12px;
+      background: var(--purple);
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px var(--purple-glow);
+      margin-top: 4px;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 28px var(--purple-glow);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    /* Liquid glass shimmer on button */
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: rgba(255,255,255,0.15);
+      transform: skewX(-20deg);
+      transition: left 0.4s ease;
+    }
+
+    .btn-primary:hover::after {
+      left: 130%;
+    }
+
+    /* Spinner inside button */
+    .spinner {
+      display: none;
+      font-size: 18px;
+      position: relative;
+      width: 1em;
+      height: 1em;
+      margin: 0 auto;
+    }
+
+    .spinner.active {
+      display: inline-block;
+    }
+
+    .spinner .spinner-blade {
+      position: absolute;
+      left: 0.4629em;
+      bottom: 0;
+      width: 0.074em;
+      height: 0.2777em;
+      border-radius: 0.0555em;
+      background-color: transparent;
+      transform-origin: center -0.2222em;
+      animation: spinner-fade 1s infinite linear;
+    }
+
+    .spinner .spinner-blade:nth-child(1)  { animation-delay: 0s;     transform: rotate(0deg); }
+    .spinner .spinner-blade:nth-child(2)  { animation-delay: 0.083s; transform: rotate(30deg); }
+    .spinner .spinner-blade:nth-child(3)  { animation-delay: 0.166s; transform: rotate(60deg); }
+    .spinner .spinner-blade:nth-child(4)  { animation-delay: 0.249s; transform: rotate(90deg); }
+    .spinner .spinner-blade:nth-child(5)  { animation-delay: 0.332s; transform: rotate(120deg); }
+    .spinner .spinner-blade:nth-child(6)  { animation-delay: 0.415s; transform: rotate(150deg); }
+    .spinner .spinner-blade:nth-child(7)  { animation-delay: 0.498s; transform: rotate(180deg); }
+    .spinner .spinner-blade:nth-child(8)  { animation-delay: 0.581s; transform: rotate(210deg); }
+    .spinner .spinner-blade:nth-child(9)  { animation-delay: 0.664s; transform: rotate(240deg); }
+    .spinner .spinner-blade:nth-child(10) { animation-delay: 0.747s; transform: rotate(270deg); }
+    .spinner .spinner-blade:nth-child(11) { animation-delay: 0.83s;  transform: rotate(300deg); }
+    .spinner .spinner-blade:nth-child(12) { animation-delay: 0.913s; transform: rotate(330deg); }
+
+    @keyframes spinner-fade {
+      0%   { background-color: #8B5CF6; }
+      100% { background-color: transparent; }
+    }
+
+    /* Error message */
+    .error-msg {
+      display: none;
+      color: #EF4444;
+      font-size: 0.8rem;
+      text-align: center;
+      margin-top: -8px;
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+
+    /* Register link */
+    .register-link {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--white-muted);
+      margin-top: 4px;
+    }
+
+    .register-link a {
+      color: var(--purple);
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity 0.3s;
+    }
+
+    .register-link a:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Dot field background -->
+  <div id="dot-wrap">
+    <canvas id="dot-canvas"></canvas>
+  </div>
+
+  <!-- Auth container -->
+  <div class="auth-container">
+
+    <!-- Branding -->
+    <div class="brand">
+      <h1>SMS</h1>
+      <p>Smart Management System</p>
+    </div>
+
+    <!-- Glass card -->
+    <div class="card">
+      <form class="form" id="loginForm">
+        <h2>Welcome back</h2>
+
+        <!-- Email -->
+        <div class="input-wrap">
+          <input
+            type="email"
+            class="input"
+            id="email"
+            placeholder="Email address"
+            autocomplete="off"
+            required
+          />
+        </div>
+
+        <!-- Password -->
+        <div class="input-wrap">
+          <input
+            type="password"
+            class="input"
+            id="password"
+            placeholder="Password"
+            required
+          />
+        </div>
+
+        <!-- Forgot password -->
+        <div class="forgot">
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <!-- Error message -->
+        <p class="error-msg" id="errorMsg">Invalid email or password.</p>
+
+        <!-- Submit button -->
+        <button type="submit" class="btn-primary" id="submitBtn">
+          <span id="btnText">Sign In</span>
+          <div class="spinner" id="spinner">
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+          </div>
+        </button>
+
+        <!-- Register link -->
+        <p class="register-link">
+          Don't have an account? <a href="/register">Create one</a>
+        </p>
+
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Dot field script -->
+  <script src="{{ url_for('static', filename='js/dotfield.js') }}"></script>
+  <script>
+    initDotField('dot-canvas');
+  </script>
+
+  <!-- Login logic -->
+  <script>
+    const form = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const spinner = document.getElementById('spinner');
+    const errorMsg = document.getElementById('errorMsg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Show spinner
+      btnText.style.display = 'none';
+      spinner.classList.add('active');
+      submitBtn.disabled = true;
+      errorMsg.classList.remove('show');
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          window.location.href = '/dashboard';
+        } else {
+          errorMsg.textContent = data.message || 'Invalid email or password.';
+          errorMsg.classList.add('show');
+        }
+      } catch (err) {
+        errorMsg.textContent = 'Something went wrong. Try again.';
+        errorMsg.classList.add('show');
+      } finally {
+        btnText.style.display = 'inline';
+        spinner.classList.remove('active');
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
