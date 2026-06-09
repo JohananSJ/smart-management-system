@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SMS — Learning</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --purple: #8B5CF6;
+      --purple-glow: rgba(139,92,246,0.4);
+      --purple-border: rgba(139,92,246,0.6);
+      --red: #EF4444;
+      --red-glow: rgba(239,68,68,0.4);
+      --red-border: rgba(239,68,68,0.6);
+      --amber: #F59E0B;
+      --green: #22C55E;
+      --white-glass: rgba(255,255,255,0.07);
+      --white-border: rgba(255,255,255,0.15);
+      --white-text: rgba(255,255,255,0.9);
+      --white-muted: rgba(255,255,255,0.45);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #000000;
+      min-height: 100vh;
+      color: var(--white-text);
+      display: flex;
+      overflow: auto;
+    }
+
+    #dot-wrap { position: fixed; inset: 0; z-index: 0; }
+    #dot-canvas { width: 100%; height: 100%; display: block; background: #000000; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0;
+      width: 220px;
+      height: 100vh;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--white-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      padding: 24px 0;
+    }
+    .sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid var(--white-border); }
+    .brand-sms { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 2px; }
+    .brand-sub { font-size: 10px; color: var(--white-muted); letter-spacing: 1px; margin-top: 2px; }
+    .sidebar-nav { flex: 1; padding: 20px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 24px;
+      color: var(--white-muted);
+      text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      transition: all 0.3s;
+      position: relative; cursor: pointer;
+    }
+    .nav-item:hover { color: var(--white-text); background: var(--white-glass); }
+    .nav-item.active { color: #fff; background: rgba(139,92,246,0.12); }
+    .nav-item.active::before {
+      content: ''; position: absolute;
+      left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--purple);
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 10px var(--purple-glow);
+    }
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .sidebar-footer { padding: 16px 24px; border-top: 1px solid var(--white-border); }
+    .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(139,92,246,0.3);
+      border: 1px solid var(--purple-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: #fff;
+    }
+    .user-name { font-size: 13px; font-weight: 500; }
+    .user-role { font-size: 11px; color: var(--white-muted); }
+    .logout-btn {
+      width: 100%; padding: 8px;
+      background: none; border: 1px solid var(--white-border);
+      border-radius: 8px; color: var(--white-muted);
+      font-size: 12px; cursor: pointer; transition: all 0.3s;
+      font-family: 'Inter', sans-serif;
+    }
+    .logout-btn:hover { border-color: var(--red-border); color: var(--red); box-shadow: 0 0 10px var(--red-glow); }
+
+    /* ── Main ── */
+    .main {
+      margin-left: 220px; flex: 1;
+      display: flex; flex-direction: column;
+      z-index: 1; min-height: 100vh; overflow-y: auto;
+      padding: 24px 32px 40px;
+    }
+
+    .topbar {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-title { font-size: 22px; font-weight: 700; }
+    .page-sub { font-size: 13px; color: var(--white-muted); margin-top: 2px; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex; align-items: center;
+      gap: 10px; flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .neu-btn {
+      background: rgba(255,255,255,0.06);
+      border-radius: 50px;
+      box-shadow: inset 2px 2px 6px rgba(0,0,0,0.3), inset -2px -2px 6px rgba(255,255,255,0.04);
+      color: var(--white-text);
+      cursor: pointer; font-size: 13px;
+      padding: 9px 20px;
+      transition: all 0.2s ease-in-out;
+      border: 1px solid var(--white-border);
+      font-family: 'Inter', sans-serif; font-weight: 500;
+      position: relative; overflow: hidden; white-space: nowrap;
+    }
+    .neu-btn::after {
+      content: ''; position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.06);
+      transform: skewX(-20deg); transition: left 0.4s ease;
+    }
+    .neu-btn:hover::after { left: 130%; }
+    .neu-btn:hover {
+      box-shadow: inset 1px 1px 4px rgba(0,0,0,0.3), inset -1px -1px 4px rgba(255,255,255,0.04), 0 0 15px var(--purple-glow);
+      border-color: var(--purple-border);
+    }
+    .neu-btn.active {
+      border-color: var(--purple-border); color: #fff;
+      box-shadow: inset 1px 1px 4px rgba(0,0,0,0.3), inset -1px -1px 4px rgba(255,255,255,0.04), 0 0 15px var(--purple-glow);
+    }
+    .neu-btn.delete { color: var(--red); border-color: rgba(239,68,68,0.3); }
+    .neu-btn.delete:hover {
+      box-shadow: inset 1px 1px 4px rgba(0,0,0,0.3), inset -1px -1px 4px rgba(255,255,255,0.04), 0 0 15px var(--red-glow);
+      border-color: var(--red-border);
+    }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--white-glass);
+      border: 1px solid var(--white-border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      backdrop-filter: blur(6px);
+      transition: all 0.4s;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::after {
+      content: ''; position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.04);
+      transform: skewX(-20deg); transition: left 0.4s ease;
+    }
+    .stat-card:hover::after { left: 130%; }
+    .stat-card:hover { border-color: var(--purple-border); box-shadow: 0 0 20px var(--purple-glow); }
+    .stat-label { font-size: 11px; color: var(--white-muted); font-weight: 500; margin-bottom: 6px; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #fff; }
+    .stat-sub { font-size: 11px; color: var(--white-muted); margin-top: 4px; }
+
+    /* Skeleton */
+    .skeleton-block {
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── Grid ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 20px;
+    }
+
+    /* ── Topic cards ── */
+    .topics-section { display: flex; flex-direction: column; gap: 14px; }
+    .section-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--white-text); margin-bottom: 4px;
+    }
+
+    .topic-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 12px 17px 51px rgba(0,0,0,0.22);
+      backdrop-filter: blur(6px);
+      border-radius: 14px;
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: all 0.4s;
+      position: relative; overflow: hidden;
+      user-select: none;
+    }
+    .topic-card::after {
+      content: ''; position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.05);
+      transform: skewX(-20deg); transition: left 0.4s ease;
+    }
+    .topic-card:hover::after { left: 130%; }
+    .topic-card:hover {
+      border-color: var(--purple-border);
+      box-shadow: 0 0 20px var(--purple-glow), 12px 17px 51px rgba(0,0,0,0.3);
+      transform: scale(1.01);
+    }
+    .topic-card:active { transform: scale(0.97) rotateZ(1.7deg); }
+
+    .topic-card.skeleton-card {
+      animation: pulse 1.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .topic-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 10px;
+      margin-bottom: 10px;
+    }
+    .topic-name { font-size: 15px; font-weight: 600; color: var(--white-text); flex: 1; }
+    .topic-actions { display: flex; gap: 6px; }
+
+    .badge {
+      white-space: nowrap; padding: 3px 10px;
+      border-radius: 50px; font-size: 10px; font-weight: 600;
+    }
+    .badge-not-started { background: rgba(255,255,255,0.08); color: var(--white-muted); border: 1px solid var(--white-border); }
+    .badge-in-progress { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+    .badge-completed { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .badge-revision { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+
+    .progress-wrap { margin-bottom: 8px; }
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: var(--white-muted);
+      margin-bottom: 6px;
+    }
+    .progress-bar-bg {
+      width: 100%; height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 50px;
+      background: linear-gradient(90deg, var(--purple), rgba(139,92,246,0.6));
+      box-shadow: 0 0 8px var(--purple-glow);
+      transition: width 0.8s ease;
+      width: 0%;
+    }
+
+    .topic-footer {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-top: 8px;
+    }
+    .topic-meta { font-size: 11px; color: var(--white-muted); }
+
+    .action-btn {
+      background: none; border: 1px solid var(--white-border);
+      border-radius: 6px; color: var(--white-muted);
+      font-size: 10px; padding: 3px 8px;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif; white-space: nowrap;
+    }
+    .action-btn:hover { color: var(--white-text); border-color: rgba(255,255,255,0.3); }
+    .action-btn.del { color: var(--red); border-color: rgba(239,68,68,0.3); }
+    .action-btn.del:hover { box-shadow: 0 0 8px var(--red-glow); border-color: var(--red-border); }
+
+    /* ── Right panel ── */
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .panel-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--white-border);
+      border-radius: 14px; padding: 18px;
+      backdrop-filter: blur(6px);
+      position: relative; overflow: hidden;
+      transition: all 0.4s;
+    }
+    .panel-card::after {
+      content: ''; position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.04);
+      transform: skewX(-20deg); transition: left 0.4s ease;
+    }
+    .panel-card:hover::after { left: 130%; }
+    .panel-title {
+      font-size: 14px; font-weight: 600;
+      margin-bottom: 14px; color: var(--white-text);
+    }
+
+    /* Notes box */
+    .notes-textarea {
+      width: 100%; min-height: 100px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px; padding: 10px 12px;
+      color: white; font-family: 'Inter', sans-serif;
+      font-size: 13px; resize: vertical;
+      outline: none; transition: border-color 0.3s, box-shadow 0.3s;
+      backdrop-filter: blur(8px);
+    }
+    .notes-textarea::placeholder { color: rgba(255,255,255,0.3); }
+    .notes-textarea:focus {
+      border-color: var(--purple-border);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.12);
+    }
+
+    .save-note-btn {
+      width: 100%; margin-top: 10px;
+      padding: 9px; border-radius: 8px;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid var(--purple-border);
+      color: var(--purple); font-size: 13px;
+      font-weight: 600; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .save-note-btn::after {
+      content: ''; position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.06);
+      transform: skewX(-20deg); transition: left 0.4s ease;
+    }
+    .save-note-btn:hover::after { left: 130%; }
+    .save-note-btn:hover { background: rgba(139,92,246,0.25); box-shadow: 0 0 15px var(--purple-glow); }
+
+    /* Overall progress */
+    .overall-percent {
+      font-size: 36px; font-weight: 700; color: #fff;
+      text-align: center; margin-bottom: 8px;
+    }
+    .overall-sub { font-size: 12px; color: var(--white-muted); text-align: center; margin-bottom: 14px; }
+    .overall-bar-bg {
+      width: 100%; height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50px; overflow: hidden;
+    }
+    .overall-bar-fill {
+      height: 100%; border-radius: 50px;
+      background: linear-gradient(90deg, var(--purple), rgba(139,92,246,0.5));
+      box-shadow: 0 0 10px var(--purple-glow);
+      transition: width 1s ease; width: 0%;
+    }
+
+    /* Status breakdown */
+    .status-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+    }
+    .status-row:last-child { border-bottom: none; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+
+    /* Add button */
+    .add-btn {
+      cursor: pointer; outline: none;
+      background: none; border: none;
+      transition: transform 0.3s; padding: 0;
+    }
+    .add-btn:hover { transform: rotate(90deg); }
+    .add-btn svg { stroke: rgba(255,255,255,0.6); fill: none; transition: all 0.3s; }
+    .add-btn:hover svg { fill: rgba(139,92,246,0.3); stroke: var(--purple); }
+    .add-btn:active svg { stroke: #fff; fill: rgba(139,92,246,0.5); transition: none; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200; display: none;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: rgba(10,10,10,0.9);
+      border: 1px solid var(--white-border);
+      border-radius: 20px; padding: 28px 32px;
+      width: 460px; max-width: 95vw;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 40px rgba(139,92,246,0.15);
+      animation: modal-in 0.3s ease;
+    }
+    @keyframes modal-in {
+      from { transform: translateY(20px) scale(0.97); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .modal-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 22px;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none;
+      color: var(--white-muted); cursor: pointer;
+      font-size: 20px; padding: 0; line-height: 1; transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--white-text); }
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 12px; color: var(--white-muted); font-weight: 500; margin-bottom: 6px; display: block; }
+    .glass-input {
+      width: 100%; padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px);
+      color: white; font-family: 'Inter', sans-serif;
+      font-size: 13px; outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    }
+    .glass-input::placeholder { color: rgba(255,255,255,0.35); }
+    .glass-input:focus {
+      border-color: var(--purple-border);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+      transform: translateY(-1px);
+    }
+    select.glass-input option { background: #111; color: white; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .submit-btn {
+      width: 100%; padding: 12px;
+      border-radius: 10px; background: var(--purple);
+      border: none; color: white;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: all 0.3s; position: relative; overflow: hidden;
+      box-shadow: 0 0 20px var(--purple-glow);
+      margin-top: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .submit-btn::after {
+      content: ''; position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.15);
+      transform: skewX(-20deg); transition: left 0.4s ease;
+    }
+    .submit-btn:hover::after { left: 130%; }
+    .submit-btn:hover { box-shadow: 0 0 30px var(--purple-glow); transform: translateY(-1px); }
+    .submit-btn:active { transform: scale(0.98); }
+
+    /* Spinner */
+    .spinner { font-size: 18px; position: relative; display: inline-block; width: 1em; height: 1em; }
+    .spinner .spinner-blade {
+      position: absolute; left: 0.4629em; bottom: 0;
+      width: 0.074em; height: 0.2777em;
+      border-radius: 0.0555em; background-color: transparent;
+      transform-origin: center -0.2222em;
+      animation: spinner-fade 1s infinite linear;
+    }
+    .spinner .spinner-blade:nth-child(1)  { animation-delay: 0s;     transform: rotate(0deg); }
+    .spinner .spinner-blade:nth-child(2)  { animation-delay: 0.083s; transform: rotate(30deg); }
+    .spinner .spinner-blade:nth-child(3)  { animation-delay: 0.166s; transform: rotate(60deg); }
+    .spinner .spinner-blade:nth-child(4)  { animation-delay: 0.249s; transform: rotate(90deg); }
+    .spinner .spinner-blade:nth-child(5)  { animation-delay: 0.332s; transform: rotate(120deg); }
+    .spinner .spinner-blade:nth-child(6)  { animation-delay: 0.415s; transform: rotate(150deg); }
+    .spinner .spinner-blade:nth-child(7)  { animation-delay: 0.498s; transform: rotate(180deg); }
+    .spinner .spinner-blade:nth-child(8)  { animation-delay: 0.581s; transform: rotate(210deg); }
+    .spinner .spinner-blade:nth-child(9)  { animation-delay: 0.664s; transform: rotate(240deg); }
+    .spinner .spinner-blade:nth-child(10) { animation-delay: 0.747s; transform: rotate(270deg); }
+    .spinner .spinner-blade:nth-child(11) { animation-delay: 0.830s; transform: rotate(300deg); }
+    .spinner .spinner-blade:nth-child(12) { animation-delay: 0.913s; transform: rotate(330deg); }
+    @keyframes spinner-fade { 0% { background-color: var(--purple); } 100% { background-color: transparent; } }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: rgba(10,10,10,0.9);
+      border: 1px solid var(--white-border);
+      border-radius: 12px; padding: 12px 18px;
+      font-size: 13px; color: var(--white-text);
+      z-index: 999; backdrop-filter: blur(10px);
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.3s ease; pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(34,197,94,0.4); }
+    .toast.error { border-color: rgba(239,68,68,0.4); }
+
+    .empty-state { text-align: center; padding: 40px 16px; color: var(--white-muted); font-size: 13px; }
+    .empty-state svg { opacity: 0.2; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+
+<div id="dot-wrap"><canvas id="dot-canvas"></canvas></div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-sms">SMS</div>
+    <div class="brand-sub">Smart Management System</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/dashboard" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="/tasks-board" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>
+      Tasks
+    </a>
+    <a href="/learning" class="nav-item active">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Learning
+    </a>
+    <a href="/resources" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Resources
+    </a>
+    <a href="/admin" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Admin
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="avatar" id="sidebarAvatar">J</div>
+      <div>
+        <div class="user-name" id="sidebarName">Johanan</div>
+        <div class="user-role">Intern</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="page-title">Learning Tracker</div>
+      <div class="page-sub" id="learningSub">Loading topics...</div>
+    </div>
+    <button class="add-btn" title="Add Topic" onclick="openModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="38px" height="38px" viewBox="0 0 24 24">
+        <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z" stroke-width="1.5"/>
+        <path d="M8 12H16" stroke-width="1.5"/>
+        <path d="M12 16V8" stroke-width="1.5"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="stat-label">Total Topics</div><div class="stat-value skeleton-block" id="statTotal" style="width:40px;height:28px;border-radius:6px"></div></div>
+    <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value skeleton-block" id="statCompleted" style="width:40px;height:28px;border-radius:6px"></div></div>
+    <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value skeleton-block" id="statInProgress" style="width:40px;height:28px;border-radius:6px"></div></div>
+    <div class="stat-card"><div class="stat-label">Avg Progress</div><div class="stat-value skeleton-block" id="statAvg" style="width:60px;height:28px;border-radius:6px"></div></div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <button class="neu-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="neu-btn" onclick="setFilter('not_started', this)">Not Started</button>
+    <button class="neu-btn" onclick="setFilter('in_progress', this)">In Progress</button>
+    <button class="neu-btn" onclick="setFilter('completed', this)">Completed</button>
+    <button class="neu-btn" onclick="setFilter('revision', this)">Revision</button>
+  </div>
+
+  <!-- Content grid -->
+  <div class="content-grid">
+    <!-- Topics list -->
+    <div class="topics-section">
+      <div class="section-title">Topics</div>
+      <div id="topicsList">
+        <!-- skeletons -->
+        <div class="topic-card skeleton-card" style="height:110px;margin-bottom:14px"></div>
+        <div class="topic-card skeleton-card" style="height:110px;margin-bottom:14px"></div>
+        <div class="topic-card skeleton-card" style="height:110px"></div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+      <!-- Overall progress -->
+      <div class="panel-card">
+        <div class="panel-title">Overall Progress</div>
+        <div class="overall-percent" id="overallPercent">0%</div>
+        <div class="overall-sub" id="overallSub">0 of 0 topics completed</div>
+        <div class="overall-bar-bg">
+          <div class="overall-bar-fill" id="overallBar"></div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="status-row">
+            <div style="display:flex;align-items:center">
+              <span class="status-dot" style="background:var(--green)"></span>
+              Completed
+            </div>
+            <span id="countCompleted" style="color:var(--white-muted);font-size:12px">0</span>
+          </div>
+          <div class="status-row">
+            <div style="display:flex;align-items:center">
+              <span class="status-dot" style="background:var(--purple)"></span>
+              In Progress
+            </div>
+            <span id="countInProgress" style="color:var(--white-muted);font-size:12px">0</span>
+          </div>
+          <div class="status-row">
+            <div style="display:flex;align-items:center">
+              <span class="status-dot" style="background:var(--amber)"></span>
+              Revision
+            </div>
+            <span id="countRevision" style="color:var(--white-muted);font-size:12px">0</span>
+          </div>
+          <div class="status-row">
+            <div style="display:flex;align-items:center">
+              <span class="status-dot" style="background:rgba(255,255,255,0.3)"></span>
+              Not Started
+            </div>
+            <span id="countNotStarted" style="color:var(--white-muted);font-size:12px">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's notes -->
+      <div class="panel-card">
+        <div class="panel-title">Today's Notes</div>
+        <textarea class="notes-textarea" id="todayNotes" placeholder="Write what you learned today..."></textarea>
+        <button class="save-note-btn" onclick="saveNote()">Save Note</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add New Topic</div>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Topic Name *</label>
+      <input type="text" class="glass-input" id="topicName" placeholder="e.g. Python Basics"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" class="glass-input" id="topicDesc" placeholder="Short description (optional)"/>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="glass-input" id="topicStatus">
+          <option value="not_started">Not Started</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="revision">Revision</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Progress %</label>
+        <input type="number" class="glass-input" id="topicProgress" placeholder="0" min="0" max="100" value="0"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input type="text" class="glass-input" id="topicNotes" placeholder="Any notes about this topic"/>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitTopic()">
+      <span id="submitText">Add Topic</span>
+      <div class="spinner" id="submitSpinner" style="display:none">
+        <div class="spinner-blade"></div><div class="spinner-blade"></div>
+        <div class="spinner-blade"></div><div class="spinner-blade"></div>
+        <div class="spinner-blade"></div><div class="spinner-blade"></div>
+        <div class="spinner-blade"></div><div class="spinner-blade"></div>
+        <div class="spinner-blade"></div><div class="spinner-blade"></div>
+        <div class="spinner-blade"></div><div class="spinner-blade"></div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="{{ url_for('static', filename='js/dotfield.js') }}"></script>
+<script>
+  initDotField('dot-canvas');
+
+  let allTopics = [];
+  let currentFilter = 'all';
+  let editingId = null;
+
+  // ── Load user ──
+  function loadUser() {
+    fetch('/profile').then(r => r.json()).then(data => {
+      if (data.name) {
+        const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('sidebarAvatar').textContent = initials;
+        document.getElementById('sidebarName').textContent = data.name;
+      }
+    }).catch(() => {});
+  }
+
+  // ── Load topics ──
+  async function loadTopics() {
+    try {
+      const res = await fetch('/progress');
+      const data = await res.json();
+      if (data.progress) {
+        allTopics = data.progress;
+        renderTopics();
+        renderStats();
+      }
+    } catch (e) {
+      showToast('Failed to load topics', 'error');
+      document.getElementById('topicsList').innerHTML = emptyState();
+    }
+  }
+
+  // ── Render topics ──
+  function renderTopics() {
+    let topics = [...allTopics];
+    if (currentFilter !== 'all') {
+      topics = topics.filter(t => t.status === currentFilter);
+    }
+
+    const list = document.getElementById('topicsList');
+    if (!topics.length) { list.innerHTML = emptyState(); return; }
+    list.innerHTML = topics.map(renderTopicCard).join('');
+
+    // animate progress bars
+    setTimeout(() => {
+      topics.forEach(t => {
+        const bar = document.getElementById(`bar-${t.id}`);
+        if (bar) bar.style.width = (t.completion_percentage || 0) + '%';
+      });
+    }, 100);
+  }
+
+  function renderTopicCard(t) {
+    const badgeMap = {
+      not_started: '<span class="badge badge-not-started">Not Started</span>',
+      in_progress:  '<span class="badge badge-in-progress">In Progress</span>',
+      completed:    '<span class="badge badge-completed">Completed</span>',
+      revision:     '<span class="badge badge-revision">Revision</span>',
+    };
+    const badge = badgeMap[t.status] || badgeMap['not_started'];
+    const pct = t.completion_percentage || 0;
+
+    return `
+    <div class="topic-card" id="topic-${t.id}">
+      <div class="topic-header">
+        <div class="topic-name">${escHtml(t.topic_name)}</div>
+        ${badge}
+      </div>
+      ${t.description ? `<div style="font-size:12px;color:var(--white-muted);margin-bottom:10px">${escHtml(t.description)}</div>` : ''}
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>Progress</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="bar-${t.id}" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-meta">${t.notes ? escHtml(t.notes.slice(0,40)) + (t.notes.length > 40 ? '...' : '') : 'No notes'}</span>
+        <div class="topic-actions">
+          <button class="action-btn" onclick="openEditModal(${t.id})">Edit</button>
+          <button class="action-btn del" onclick="deleteTopic(${t.id})">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── Render stats ──
+  function renderStats() {
+    const total      = allTopics.length;
+    const completed  = allTopics.filter(t => t.status === 'completed').length;
+    const inProgress = allTopics.filter(t => t.status === 'in_progress').length;
+    const revision   = allTopics.filter(t => t.status === 'revision').length;
+    const notStarted = allTopics.filter(t => t.status === 'not_started').length;
+    const avg = total ? Math.round(allTopics.reduce((s, t) => s + (t.completion_percentage || 0), 0) / total) : 0;
+
+    document.getElementById('statTotal').outerHTML     = `<div class="stat-value" id="statTotal">${total}</div>`;
+    document.getElementById('statCompleted').outerHTML = `<div class="stat-value" id="statCompleted">${completed}</div>`;
+    document.getElementById('statInProgress').outerHTML= `<div class="stat-value" id="statInProgress">${inProgress}</div>`;
+    document.getElementById('statAvg').outerHTML       = `<div class="stat-value" id="statAvg">${avg}%</div>`;
+
+    document.getElementById('learningSub').textContent = `${total} topic${total !== 1 ? 's' : ''} total`;
+
+    document.getElementById('overallPercent').textContent = avg + '%';
+    document.getElementById('overallSub').textContent = `${completed} of ${total} topics completed`;
+    setTimeout(() => { document.getElementById('overallBar').style.width = avg + '%'; }, 100);
+
+    document.getElementById('countCompleted').textContent  = completed;
+    document.getElementById('countInProgress').textContent = inProgress;
+    document.getElementById('countRevision').textContent   = revision;
+    document.getElementById('countNotStarted').textContent = notStarted;
+  }
+
+  function emptyState() {
+    return `<div class="empty-state">
+      <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <div>No topics here</div>
+    </div>`;
+  }
+
+  // ── Filter ──
+  function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-bar .neu-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTopics();
+  }
+
+  // ── Submit topic ──
+  async function submitTopic() {
+    const name     = document.getElementById('topicName').value.trim();
+    const desc     = document.getElementById('topicDesc').value.trim();
+    const status   = document.getElementById('topicStatus').value;
+    const progress = parseInt(document.getElementById('topicProgress').value) || 0;
+    const notes    = document.getElementById('topicNotes').value.trim();
+
+    if (!name) { showToast('Topic name is required', 'error'); return; }
+
+    setSubmitting(true);
+    try {
+      let res, data;
+      if (editingId) {
+        res = await fetch(`/progress/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic_name: name, description: desc, status, completion_percentage: progress, notes })
+        });
+      } else {
+        res = await fetch('/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic_name: name, description: desc, status, completion_percentage: progress, notes })
+        });
+      }
+      data = await res.json();
+      if (res.ok) {
+        await loadTopics();
+        closeModal();
+        showToast(editingId ? 'Topic updated!' : 'Topic added!', 'success');
+      } else {
+        showToast(data.error || 'Failed', 'error');
+      }
+    } catch (e) {
+      showToast('Network error', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // ── Delete topic ──
+  async function deleteTopic(id) {
+    if (!confirm('Delete this topic?')) return;
+    try {
+      await fetch(`/progress/${id}`, { method: 'DELETE' });
+      allTopics = allTopics.filter(t => t.id !== id);
+      renderTopics();
+      renderStats();
+      showToast('Topic deleted', 'success');
+    } catch (e) {
+      showToast('Failed to delete', 'error');
+    }
+  }
+
+  // ── Edit modal ──
+  function openEditModal(id) {
+    const t = allTopics.find(t => t.id === id);
+    if (!t) return;
+    editingId = id;
+    document.getElementById('topicName').value     = t.topic_name || '';
+    document.getElementById('topicDesc').value     = t.description || '';
+    document.getElementById('topicStatus').value   = t.status || 'not_started';
+    document.getElementById('topicProgress').value = t.completion_percentage || 0;
+    document.getElementById('topicNotes').value    = t.notes || '';
+    document.getElementById('modalTitle').textContent  = 'Edit Topic';
+    document.getElementById('submitText').textContent  = 'Update Topic';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  // ── Save note ──
+  async function saveNote() {
+    const note = document.getElementById('todayNotes').value.trim();
+    if (!note) { showToast('Write something first', 'error'); return; }
+    // Save to localStorage as quick note
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem(`note_${today}`, note);
+    showToast('Note saved!', 'success');
+  }
+
+  // ── Modal helpers ──
+  function openModal() {
+    editingId = null;
+    document.getElementById('topicName').value     = '';
+    document.getElementById('topicDesc').value     = '';
+    document.getElementById('topicStatus').value   = 'not_started';
+    document.getElementById('topicProgress').value = 0;
+    document.getElementById('topicNotes').value    = '';
+    document.getElementById('modalTitle').textContent = 'Add New Topic';
+    document.getElementById('submitText').textContent = 'Add Topic';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editingId = null; }
+  function closeModalOutside(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+  function setSubmitting(state) {
+    document.getElementById('submitSpinner').style.display = state ? 'inline-block' : 'none';
+    document.getElementById('submitText').style.display    = state ? 'none' : 'inline';
+    document.getElementById('submitBtn').disabled = state;
+  }
+
+  // ── Logout ──
+  function handleLogout() {
+    fetch('/logout', { method: 'POST' }).then(() => window.location.href = '/login');
+  }
+
+  // ── Toast ──
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Load today's note ──
+  function loadTodayNote() {
+    const today = new Date().toISOString().split('T')[0];
+    const saved = localStorage.getItem(`note_${today}`);
+    if (saved) document.getElementById('todayNotes').value = saved;
+  }
+
+  // ── Init ──
+  loadUser();
+  loadTopics();
+  loadTodayNote();
+</script>
+</body>
+</html>

@@ -101,8 +101,8 @@ def tasks_page():
         return redirect('/login')
     return render_template('tasks/tasks.html', active_page='tasks')
 
-@app.route('/progress')
-def progress_page():
+@app.route('/learning')
+def learning_page():
     if not session.get('user_id'):
         return redirect('/login')
     return render_template('learning/learning.html', active_page='learning')
