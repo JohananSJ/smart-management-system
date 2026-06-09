@@ -29,6 +29,21 @@ SQLite with 4 tables:
 - IDOR prevention on all routes
 - Input validation and logging
 
+## API Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/register` | Register new user |
+| POST | `/login` | Login |
+| POST | `/logout` | Logout |
+| GET | `/tasks` | Get all tasks |
+| POST | `/tasks` | Create task |
+| PUT | `/tasks/<id>` | Update task |
+| DELETE | `/tasks/<id>` | Delete task |
+| GET | `/progress` | Get all topics |
+| POST | `/progress` | Add topic |
+| PUT | `/progress/<id>` | Update topic |
+| DELETE | `/progress/<id>` | Delete topic |
+
 ## Progress
 -  Day 17 — Backend complete (completed)
 -  Day 18 — Login, Register, Dashboard (completed)
