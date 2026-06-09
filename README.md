@@ -1,5 +1,5 @@
 SMS — Smart Management System
-It is an web app built with Flask + SQLite + HTML/CSS/JS.
+It is a web app built with Flask + SQLite + HTML/CSS/JS.
 Backend: Python Flask, SQLite
 Frontend: HTML, CSS, JavaScript
 Security: bcrypt, flask-session, rate limiting, IDOR prevention, input validation
