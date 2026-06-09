@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, session
+from database import get_db
 from flask_bcrypt import Bcrypt
 from flask_session import Session
 from flask_limiter import Limiter
@@ -126,6 +127,16 @@ def admin_page():
     if session.get('user_role') != 'admin':
         return redirect('/dashboard')
     return render_template('admin/admin.html', active_page='admin')
+
+@app.route('/api/profile')
+def api_profile():
+    if not session.get('user_id'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    db = get_db()
+    user = db.execute('SELECT name, email FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user:
+        return jsonify({'name': user['name'], 'email': user['email']})
+    return jsonify({'error': 'Not found'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)

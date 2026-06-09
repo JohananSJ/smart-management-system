@@ -876,7 +876,7 @@
 
   // ── Load user info ──
   function loadUser() {
-    fetch('/profile')
+    fetch('/api/profile')
       .then(r => r.json())
       .then(data => {
         if (data.name) {
