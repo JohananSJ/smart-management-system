@@ -431,7 +431,9 @@
   </style>
 </head>
 <body>
-
+<div id="dot-wrap" style="position:fixed;inset:0;z-index:0;">
+  <canvas id="dot-canvas" style="width:100%;height:100%;display:block;background:#000000;"></canvas>
+</div>
 <div class="toast" id="toast"></div>
 
 <div class="app-layout">
@@ -445,7 +447,7 @@
     <nav class="sidebar-nav">
       <div class="nav-group-label">Main</div>
       <a href="/dashboard" class="nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
-      <a href="/tasks"     class="nav-item"><i class="ti ti-checkbox"></i> Tasks</a>
+      <a href="/tasks-board" class="nav-item"><i class="ti ti-checkbox"></i> Tasks</a>
       <a href="/progress"  class="nav-item"><i class="ti ti-chart-line"></i> Learning</a>
       <a href="/resources" class="nav-item"><i class="ti ti-folder-open"></i> Resources</a>
       <div class="nav-group-label">Account</div>
@@ -513,7 +515,7 @@
       <div class="card">
         <div class="section-title">
           Today's Tasks
-          <a href="/tasks">View all →</a>
+          <a href="/tasks-board">View all →</a>
         </div>
         <div id="todayTasks">
           <!-- skeleton -->
@@ -788,6 +790,9 @@
   loadStreak();
   loadActivity();
 </script>
-
+<script src="{{ url_for('static', filename='js/dotfield.js') }}"></script>
+<script>
+  initDotField('dot-canvas');
+</script>
 </body>
 </html>

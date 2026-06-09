@@ -95,7 +95,7 @@ def dashboard():
         return redirect('/login')
     return render_template('dashboard/dashboard.html', active_page='dashboard')
 
-@app.route('/tasks')
+@app.route('/tasks-board')
 def tasks_page():
     if not session.get('user_id'):
         return redirect('/login')
