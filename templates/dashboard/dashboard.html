@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SMS â€” Dashboard</title>
+  <title>SMS Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <style>
@@ -546,7 +546,7 @@
         <div class="card">
           <div class="section-title">Streak</div>
           <div class="streak-card">
-            <div class="streak-fire">ðŸ”¥</div>
+            <div class="streak-fire">🔥</div>
             <div>
               <div class="streak-count" id="streakCount">â€”</div>
               <div class="streak-label">day streak</div>
@@ -637,7 +637,7 @@
 
       setTimeout(() => {
         if (todayTasks.length === 0) {
-          container.innerHTML = '<p style="font-size:13px;color:var(--white-muted);text-align:center;padding:10px 0;">No tasks due today ðŸŽ‰</p>';
+          container.innerHTML = '<p style="font-size:13px;color:var(--white-muted);text-align:center;padding:10px 0;">No tasks due today 🎉</p>';
           return;
         }
         container.innerHTML = todayTasks.slice(0,4).map(t => `
@@ -683,7 +683,7 @@
       const items = data.progress || [];
 
       const avgPct = items.length
-        ? Math.round(items.reduce((s, i) => s + (i.percentage || 0), 0) / items.length)
+        ? Math.round(items.reduce((s, i) => s + (i.completion_percentage || 0), 0) / items.length)
         : 0;
 
       setTimeout(() => {
@@ -699,11 +699,11 @@
         container.innerHTML = items.slice(0,3).map(item => `
           <div class="progress-item">
             <div class="progress-header">
-              <span class="progress-name">${item.topic}</span>
-              <span class="progress-pct">${item.percentage || 0}%</span>
+              <span class="progress-name">${item.topic_name}</span>
+              <span class="progress-pct">${item.completion_percentage || 0}%</span>
             </div>
             <div class="progress-track">
-              <div class="progress-fill" data-width="${item.percentage || 0}"></div>
+              <div class="progress-fill" data-width="${item.completion_percentage || 0}"></div>
             </div>
           </div>
         `).join('');
@@ -759,7 +759,7 @@
 
       const activities = [
         ...tasks.map(t  => ({ text: `Task "${t.title}" is ${t.status}`,   time: 'Recently', color: t.status === 'done' ? 'green' : 'amber' })),
-        ...topics.map(p => ({ text: `Learning "${p.topic}" at ${p.percentage || 0}%`, time: 'Recently', color: 'purple' })),
+        ...topics.map(p => ({ text: `Learning "${p.topic_name}" at ${p.completion_percentage || 0}%`, time: 'Recently', color: 'purple' })),
       ];
 
       const container = document.getElementById('activityFeed');
