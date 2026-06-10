@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, send_file
 from database import get_db
 import os
 from werkzeug.utils import secure_filename
@@ -57,7 +57,7 @@ def upload_file():
         db.close()
 
 # GET /resources 
-@resources_bp.route('/resources', methods=['GET'])
+@resources_bp.route('/api/resources', methods=['GET'])
 def get_resources():
     user_id = login_required()
     if not user_id:
@@ -80,7 +80,7 @@ def get_resources():
         db.close()
 
 # DELETE /resources/<id>
-@resources_bp.route('/resources/<int:resource_id>', methods=['DELETE'])
+@resources_bp.route('/api/resources/<int:resource_id>', methods=['DELETE'])
 def delete_resource(resource_id):
     user_id = login_required()
     if not user_id:
@@ -110,7 +110,31 @@ def delete_resource(resource_id):
 
         return jsonify({'message': 'Resource deleted successfully'}), 200
 
+    
     except Exception as e:
         return jsonify({'message': 'Something went wrong'}), 500
     finally:
         db.close()
+
+@resources_bp.route('/resources/<int:resource_id>/download', methods=['GET'])
+def download_resource(resource_id):
+    user_id = login_required()
+    if not user_id:
+        return jsonify({'message': 'Unauthorized'}), 401
+
+    db = get_db()
+    try:
+        resource = db.execute(
+            'SELECT * FROM resources WHERE id = ? AND user_id = ?',
+            (resource_id, user_id)
+        ).fetchone()
+
+        if not resource:
+            return jsonify({'message': 'Resource not found'}), 404
+
+        return send_file(resource['file_path'], as_attachment=False)
+
+    except Exception as e:
+        return jsonify({'message': 'Something went wrong'}), 500
+    finally:
+        db.close()        

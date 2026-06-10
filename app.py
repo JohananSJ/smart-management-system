@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, session
+from flask import Flask, jsonify, session, render_template, redirect, url_for, make_response, request
 from database import get_db
 from flask_bcrypt import Bcrypt
 from flask_session import Session
@@ -13,7 +13,9 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.jinja_env.auto_reload = True
+app.jinja_env.bytecode_cache = None
 # App configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -29,9 +31,13 @@ Session(app)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["2000 per day", "500 per hour"],
     storage_uri="memory://"
 )
+
+@limiter.request_filter
+def exempt_page_routes():
+    return request.path in ['/my-resources', '/resources-v2', '/dashboard', '/learning', '/tasks-board']
 
 # Logging
 logging.basicConfig(
