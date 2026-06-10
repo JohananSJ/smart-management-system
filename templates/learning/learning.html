@@ -712,7 +712,7 @@
 
   // ── Load user ──
   function loadUser() {
-    fetch('/profile').then(r => r.json()).then(data => {
+    fetch('/api/profile').then(r => r.json()).then(data => {
       if (data.name) {
         const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
         document.getElementById('sidebarAvatar').textContent = initials;
