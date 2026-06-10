@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SMS — Dashboard</title>
+  <title>SMS â€” Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
   <style>
@@ -37,14 +37,14 @@
       background: radial-gradient(ellipse at top, rgba(139,92,246,0.08) 0%, #000 70%);
     }
 
-    /* ── Layout ── */
+    /* â”€â”€ Layout â”€â”€ */
     .app-layout {
       display: grid;
       grid-template-columns: 220px 1fr;
       min-height: 100vh;
     }
 
-    /* ── Sidebar ── */
+    /* â”€â”€ Sidebar â”€â”€ */
     .sidebar {
       background: rgba(255,255,255,0.03);
       border-right: 1px solid rgba(255,255,255,0.07);
@@ -156,7 +156,7 @@
     .user-name { font-size: 12px; font-weight: 500; color: var(--white-text); }
     .user-role { font-size: 10px; color: var(--white-muted); }
 
-    /* ── Main ── */
+    /* â”€â”€ Main â”€â”€ */
     .main-content {
       padding: 32px;
       overflow-y: auto;
@@ -177,7 +177,7 @@
     .page-title { font-size: 22px; font-weight: 600; color: #fff; }
     .page-subtitle { font-size: 13px; color: var(--white-muted); margin-top: 3px; }
 
-    /* ── Glass Card ── */
+    /* â”€â”€ Glass Card â”€â”€ */
     .card {
       background: var(--white-glass);
       border: 1px solid var(--white-border);
@@ -207,7 +207,7 @@
     }
     .card:hover::before { left: 130%; }
 
-    /* ── Stat Cards ── */
+    /* â”€â”€ Stat Cards â”€â”€ */
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -252,14 +252,14 @@
     .skel-val  { height: 28px; width: 60px; margin-bottom: 8px; }
     .skel-lbl  { height: 12px; width: 90px; }
 
-    /* ── Bottom Grid ── */
+    /* â”€â”€ Bottom Grid â”€â”€ */
     .bottom-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 16px;
     }
 
-    /* ── Today's Tasks ── */
+    /* â”€â”€ Today's Tasks â”€â”€ */
     .section-title {
       font-size: 13px;
       font-weight: 600;
@@ -342,7 +342,7 @@
     .badge-done     { background: rgba(34,197,94,0.15);  color: #86EFAC; }
     .badge-progress { background: rgba(245,158,11,0.15); color: #FCD34D; }
 
-    /* ── Progress bars ── */
+    /* â”€â”€ Progress bars â”€â”€ */
     .progress-item { margin-bottom: 14px; }
     .progress-item:last-child { margin-bottom: 0; }
     .progress-header {
@@ -366,7 +366,7 @@
       width: 0%;
     }
 
-    /* ── Activity Feed ── */
+    /* â”€â”€ Activity Feed â”€â”€ */
     .activity-item {
       display: flex;
       gap: 10px;
@@ -388,7 +388,7 @@
     .activity-text { font-size: 12px; color: var(--white-text); line-height: 1.5; }
     .activity-time { font-size: 11px; color: var(--white-muted); margin-top: 2px; }
 
-    /* ── Streak Card ── */
+    /* â”€â”€ Streak Card â”€â”€ */
     .streak-card {
       display: flex;
       align-items: center;
@@ -404,13 +404,13 @@
     }
     .streak-label { font-size: 12px; color: var(--white-muted); margin-top: 3px; }
 
-    /* ── Scrollbar ── */
+    /* â”€â”€ Scrollbar â”€â”€ */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.4); }
 
-    /* ── Toast ── */
+    /* â”€â”€ Toast â”€â”€ */
     .toast {
       position: fixed;
       top: 24px; right: 24px;
@@ -448,7 +448,7 @@
       <div class="nav-group-label">Main</div>
       <a href="/dashboard" class="nav-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
       <a href="/tasks-board" class="nav-item"><i class="ti ti-checkbox"></i> Tasks</a>
-      <a href="/progress"  class="nav-item"><i class="ti ti-chart-line"></i> Learning</a>
+      <a href="/learning"  class="nav-item"><i class="ti ti-chart-line"></i> Learning</a>
       <a href="/resources" class="nav-item"><i class="ti ti-folder-open"></i> Resources</a>
       <div class="nav-group-label">Account</div>
       <a href="/profile"   class="nav-item"><i class="ti ti-user"></i> Profile</a>
@@ -515,7 +515,7 @@
       <div class="card">
         <div class="section-title">
           Today's Tasks
-          <a href="/tasks">View all →</a>
+          <a href="/tasks">View all â†’</a>
         </div>
         <div id="todayTasks">
           <!-- skeleton -->
@@ -529,7 +529,7 @@
       <div class="card">
         <div class="section-title">
           Learning Progress
-          <a href="/progress">View all →</a>
+          <a href="/learning">View all â†’</a>
         </div>
         <div id="learningProgress">
           <div class="skeleton" style="height:14px;margin-bottom:16px;"></div>
@@ -546,9 +546,9 @@
         <div class="card">
           <div class="section-title">Streak</div>
           <div class="streak-card">
-            <div class="streak-fire">🔥</div>
+            <div class="streak-fire">ðŸ”¥</div>
             <div>
-              <div class="streak-count" id="streakCount">—</div>
+              <div class="streak-count" id="streakCount">â€”</div>
               <div class="streak-label">day streak</div>
             </div>
           </div>
@@ -572,27 +572,27 @@
 </div>
 
 <script>
-  // ── Greeting + Date ──
+  // â”€â”€ Greeting + Date â”€â”€
   const hour = new Date().getHours();
   const greetMap = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   document.getElementById('greeting').textContent = greetMap + '! Ready to get things done?';
   document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-  // ── User avatar initials ──
+  // â”€â”€ User avatar initials â”€â”€
   const uName = document.getElementById('userName');
   const uAvatar = document.getElementById('userAvatar');
   if (uName && uAvatar) {
     uAvatar.textContent = uName.textContent.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
   }
 
-  // ── Logout ──
+  // â”€â”€ Logout â”€â”€
   document.getElementById('logoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
     await fetch('/logout', { method: 'POST' });
     window.location.href = '/login';
   });
 
-  // ── Toast ──
+  // â”€â”€ Toast â”€â”€
   function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -601,7 +601,7 @@
     setTimeout(() => t.classList.remove('show'), 3500);
   }
 
-  // ── Hide skeletons, show real values ──
+  // â”€â”€ Hide skeletons, show real values â”€â”€
   function revealStat(skelValId, skelLblId, valId, lblId, value, label) {
     document.getElementById(skelValId).style.display = 'none';
     document.getElementById(skelLblId).style.display = 'none';
@@ -613,7 +613,7 @@
     lblEl.style.display = 'block';
   }
 
-  // ── Load Tasks ──
+  // â”€â”€ Load Tasks â”€â”€
   async function loadTasks() {
     try {
       const res  = await fetch('/tasks');
@@ -637,7 +637,7 @@
 
       setTimeout(() => {
         if (todayTasks.length === 0) {
-          container.innerHTML = '<p style="font-size:13px;color:var(--white-muted);text-align:center;padding:10px 0;">No tasks due today 🎉</p>';
+          container.innerHTML = '<p style="font-size:13px;color:var(--white-muted);text-align:center;padding:10px 0;">No tasks due today ðŸŽ‰</p>';
           return;
         }
         container.innerHTML = todayTasks.slice(0,4).map(t => `
@@ -657,7 +657,7 @@
     }
   }
 
-  // ── Toggle task ──
+  // â”€â”€ Toggle task â”€â”€
   async function toggleTask(id, checkbox) {
     const newStatus = checkbox.checked ? 'done' : 'todo';
     try {
@@ -668,14 +668,14 @@
       });
       const label = checkbox.closest('.task-item').querySelector('.task-text');
       label.classList.toggle('done', checkbox.checked);
-      showToast(checkbox.checked ? 'Task completed! ✓' : 'Task reopened', 'success');
+      showToast(checkbox.checked ? 'Task completed! âœ“' : 'Task reopened', 'success');
       loadTasks();
     } catch (err) {
       showToast('Could not update task', 'error');
     }
   }
 
-  // ── Load Learning Progress ──
+  // â”€â”€ Load Learning Progress â”€â”€
   async function loadProgress() {
     try {
       const res  = await fetch('/progress');
@@ -693,7 +693,7 @@
       const container = document.getElementById('learningProgress');
       setTimeout(() => {
         if (items.length === 0) {
-          container.innerHTML = '<p style="font-size:13px;color:var(--white-muted);text-align:center;padding:10px 0;">No topics yet. <a href="/progress" style="color:var(--purple)">Add one →</a></p>';
+          container.innerHTML = '<p style="font-size:13px;color:var(--white-muted);text-align:center;padding:10px 0;">No topics yet. <a href="/learning" style="color:var(--purple)">Add one â†’</a></p>';
           return;
         }
         container.innerHTML = items.slice(0,3).map(item => `
@@ -720,7 +720,7 @@
     }
   }
 
-  // ── Streak ──
+  // â”€â”€ Streak â”€â”€
   function loadStreak() {
     const streak = parseInt(localStorage.getItem('sms_streak') || '0');
     document.getElementById('streakCount').textContent = streak;
@@ -729,7 +729,7 @@
       streak < 3  ? 'Good start! Keep going ' :
       streak < 7  ? 'You\'re on fire! ' : 'Unstoppable! ';
 
-    // simple streak logic — increment if last visit was yesterday
+    // simple streak logic â€” increment if last visit was yesterday
     const last = localStorage.getItem('sms_last_visit');
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
@@ -746,7 +746,7 @@
     }
   }
 
-  // ── Activity Feed ──
+  // â”€â”€ Activity Feed â”€â”€
   async function loadActivity() {
     // Build from tasks + progress combined
     try {
@@ -784,7 +784,7 @@
     }
   }
 
-  // ── Init ──
+  // â”€â”€ Init â”€â”€
   loadTasks();
   loadProgress();
   loadStreak();
