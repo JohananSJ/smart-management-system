@@ -69,11 +69,11 @@ python -m flask run --port 5001
 ```
 
 ## Progress
-- Day 17 — Backend complete
-- Day 18 — Login, Register, Dashboard complete
-- Day 19 — Tasks, Learning Tracker complete
-- Day 20 — Resources page complete
-- Day 21 — Admin Panel complete
+-  Backend completed
+-  Login, Register, Dashboard completed
+-  Tasks, Learning Tracker completed
+-  Resources page completed
+-  Admin Panel completed
 
 ## Notes
 - App runs on port 5001 due to Windows port 5000 cache issue
