@@ -445,7 +445,7 @@
       const roleBadge = u.role === 'admin'
         ? `<span class="role-badge role-admin">Admin</span>`
         : `<span class="role-badge role-user">User</span>`;
-      const joined = new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      const joined = new Date(u.created_at).toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
 
       return `
       <tr id="row-${u.id}">
@@ -470,7 +470,7 @@
   function viewUser(id) {
     const u = allUsers.find(u => u.id === id);
     if (!u) return;
-    const joined    = new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const joined    = new Date(u.created_at).toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
     const roleBadge = u.role === 'admin'
       ? `<span class="role-badge role-admin">Admin</span>`
       : `<span class="role-badge role-user">User</span>`;
