@@ -12,7 +12,7 @@ A web app built with Flask + SQLite + HTML/CSS/JS.
 -  Dashboard with stats, streak tracker, recent activity
 -  Tasks — Kanban board (To Do, In Progress, Done)
 -  Learning Tracker — topic progress, notes
--  Resource Upload — (in progress)
+-  Resource Upload — drag & drop, file cards, filters
 -  Admin Panel — (in progress)
 
 ## Database
@@ -43,9 +43,28 @@ SQLite with 4 tables:
 | POST | `/progress` | Add topic |
 | PUT | `/progress/<id>` | Update topic |
 | DELETE | `/progress/<id>` | Delete topic |
+| POST | `/upload` | Upload file |
+| GET | `/api/resources` | Get all files |
+| DELETE | `/api/resources/<id>` | Delete file |
+
+## Pages
+| Route | Page |
+|-------|------|
+| `/login` | Login |
+| `/register` | Register |
+| `/dashboard` | Dashboard |
+| `/tasks-board` | Tasks Kanban |
+| `/learning` | Learning Tracker |
+| `/resources` | Resource Upload |
+| `/admin` | Admin Panel |
 
 ## Progress
--  Day 17 — Backend complete (completed)
--  Day 18 — Login, Register, Dashboard (completed)
--  Day 19 — Tasks, Learning Tracker (completed)
--  Day 20 — Resources, Admin Panel (yet to complete)
+- Day 17 — Backend (completed)
+- Day 18 — Login, Register, Dashboard (completed)
+- Day 19 — Tasks, Learning Tracker, dot field (completed)
+- Day 20 — Resources page, dashboard fixes (completed)
+- Day 21 — Admin Panel (yet to complete)
+
+## Notes
+- App runs on port 5001 (`flask run --port 5001`)
+- Port 5000 has Windows cache issue
