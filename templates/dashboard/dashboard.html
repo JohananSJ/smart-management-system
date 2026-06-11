@@ -745,7 +745,10 @@ loadUser();
 </script>
 <script src="{{ url_for('static', filename='js/dotfield.js') }}"></script>
 <script>
-  initDotField('dot-canvas');
+  initDotField('dot-canvas', {
+    gradientFrom: 'rgba(139, 92, 246, 0.65)',
+    gradientTo:   'rgba(139, 92, 246, 0.35)',
+  });
 </script>
 </body>
 </html>

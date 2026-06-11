@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SMS — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #EF4444;
+      --red-glow: rgba(239,68,68,0.4);
+      --red-border: rgba(239,68,68,0.6);
+      --green: #22C55E;
+      --amber: #F59E0B;
+      --white-glass: rgba(255,255,255,0.07);
+      --white-border: rgba(255,255,255,0.15);
+      --white-text: rgba(255,255,255,0.9);
+      --white-muted: rgba(255,255,255,0.45);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(ellipse at top, rgba(239,68,68,0.08) 0%, #000000 70%);
+      min-height: 100vh;
+      color: var(--white-text);
+      display: flex;
+      overflow: auto;
+    }
+
+    #dot-wrap { position: fixed; inset: 0; z-index: 0; }
+    #dot-canvas { width: 100%; height: 100%; display: block; background: #000000; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; left: 0; top: 0;
+      width: 220px; height: 100vh;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--white-border);
+      display: flex; flex-direction: column;
+      z-index: 100; padding: 24px 0;
+    }
+    .sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid var(--white-border); }
+    .brand-sms { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 2px; }
+    .brand-sub { font-size: 10px; color: var(--white-muted); letter-spacing: 1px; margin-top: 2px; }
+    .sidebar-nav { flex: 1; padding: 20px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 24px; color: var(--white-muted);
+      text-decoration: none; font-size: 14px; font-weight: 500;
+      transition: all 0.3s; position: relative; cursor: pointer;
+    }
+    .nav-item:hover { color: var(--white-text); background: var(--white-glass); }
+    .nav-item.active { color: #fff; background: rgba(239,68,68,0.12); }
+    .nav-item.active::before {
+      content: ''; position: absolute;
+      left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--red);
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 10px var(--red-glow);
+    }
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .sidebar-footer { padding: 16px 24px; border-top: 1px solid var(--white-border); }
+    .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(239,68,68,0.3);
+      border: 1px solid var(--red-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: #fff;
+    }
+    .user-name { font-size: 13px; font-weight: 500; }
+    .user-role { font-size: 11px; color: var(--red); font-weight: 600; }
+    .logout-btn {
+      width: 100%; padding: 8px;
+      background: none; border: 1px solid var(--white-border);
+      border-radius: 8px; color: var(--white-muted);
+      font-size: 12px; cursor: pointer; transition: all 0.3s;
+      font-family: 'Inter', sans-serif;
+    }
+    .logout-btn:hover { border-color: var(--red-border); color: var(--red); box-shadow: 0 0 10px var(--red-glow); }
+
+    /* ── Main ── */
+    .main {
+      margin-left: 220px; flex: 1;
+      display: flex; flex-direction: column;
+      z-index: 1; min-height: 100vh;
+      padding: 24px 32px 40px;
+    }
+
+    .topbar {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 24px;
+    }
+    .page-title { font-size: 22px; font-weight: 700; }
+    .page-sub { font-size: 13px; color: var(--white-muted); margin-top: 2px; }
+    .admin-badge {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid var(--red-border);
+      color: var(--red); font-size: 11px; font-weight: 600;
+      padding: 4px 12px; border-radius: 50px;
+      white-space: nowrap;
+    }
+
+    /* ── Stat cards ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px; margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--white-glass);
+      border: 1px solid var(--white-border);
+      border-radius: 14px; padding: 18px 20px;
+      backdrop-filter: blur(6px);
+      transition: all 0.4s;
+      position: relative; overflow: hidden;
+      cursor: default;
+    }
+    .stat-card::after {
+      content: ''; position: absolute;
+      top: -50%; left: -60%;
+      width: 30%; height: 200%;
+      background: rgba(255,255,255,0.04);
+      transform: skewX(-20deg); transition: left 0.4s ease;
+    }
+    .stat-card:hover::after { left: 130%; }
+    .stat-card:hover { border-color: var(--red-border); box-shadow: 0 0 20px var(--red-glow); }
+    .stat-icon { font-size: 20px; margin-bottom: 10px; }
+    .stat-label { font-size: 11px; color: var(--white-muted); font-weight: 500; margin-bottom: 6px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: #fff; }
+
+    /* Skeleton */
+    .skeleton-block {
+      background: rgba(239,68,68,0.08);
+      border-radius: 6px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ── Users table section ── */
+    .section-card {
+      background: var(--white-glass);
+      border: 1px solid var(--white-border);
+      border-radius: 16px; padding: 22px 24px;
+      backdrop-filter: blur(6px);
+      position: relative; overflow: hidden;
+    }
+    .section-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 18px;
+    }
+    .section-title { font-size: 15px; font-weight: 600; }
+    .user-count {
+      font-size: 12px; color: var(--white-muted);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--white-border);
+      padding: 3px 10px; border-radius: 50px;
+    }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      text-align: left; padding: 10px 14px;
+      color: var(--white-muted); font-weight: 500;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--white-border);
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.2s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+    tbody td { padding: 12px 14px; color: var(--white-text); vertical-align: middle; }
+
+    .table-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(239,68,68,0.2);
+      border: 1px solid rgba(239,68,68,0.3);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: #fff;
+      margin-right: 8px; vertical-align: middle;
+    }
+    .role-badge {
+      white-space: nowrap; padding: 3px 10px;
+      border-radius: 50px; font-size: 10px; font-weight: 600;
+    }
+    .role-admin { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .role-user  { background: rgba(255,255,255,0.08); color: var(--white-muted); border: 1px solid var(--white-border); }
+
+    .action-btn {
+      background: none; border: 1px solid var(--white-border);
+      border-radius: 6px; color: var(--white-muted);
+      font-size: 11px; padding: 4px 10px;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif; white-space: nowrap;
+    }
+    .action-btn:hover { color: var(--white-text); border-color: rgba(255,255,255,0.3); }
+    .action-btn.del { color: var(--red); border-color: rgba(239,68,68,0.3); }
+    .action-btn.del:hover { box-shadow: 0 0 8px var(--red-glow); border-color: var(--red-border); }
+
+    .empty-state { text-align: center; padding: 40px 16px; color: var(--white-muted); font-size: 13px; }
+
+    /* ── View modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200; display: none;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: rgba(10,10,10,0.95);
+      border: 1px solid var(--white-border);
+      border-radius: 20px; padding: 28px 32px;
+      width: 420px; max-width: 95vw;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 40px rgba(239,68,68,0.12);
+      animation: modal-in 0.3s ease;
+    }
+    @keyframes modal-in {
+      from { transform: translateY(20px) scale(0.97); opacity: 0; }
+      to   { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .modal-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 22px;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none;
+      color: var(--white-muted); cursor: pointer;
+      font-size: 20px; line-height: 1; transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--white-text); }
+    .detail-row {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 13px;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--white-muted); font-size: 11px; font-weight: 500; }
+    .detail-value { color: var(--white-text); font-weight: 500; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: rgba(10,10,10,0.9);
+      border: 1px solid var(--white-border);
+      border-radius: 12px; padding: 12px 18px;
+      font-size: 13px; color: var(--white-text);
+      z-index: 999; backdrop-filter: blur(10px);
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.3s ease; pointer-events: none;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(34,197,94,0.4); }
+    .toast.error   { border-color: rgba(239,68,68,0.4); }
+  </style>
+</head>
+<body>
+
+<div id="dot-wrap"><canvas id="dot-canvas"></canvas></div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-sms">SMS</div>
+    <div class="brand-sub">Smart Management System</div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/dashboard" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="/tasks-board" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>
+      Tasks
+    </a>
+    <a href="/learning" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Learning
+    </a>
+    <a href="/resources" class="nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Resources
+    </a>
+    <a href="/admin" class="nav-item active">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Admin
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="avatar" id="sidebarAvatar">A</div>
+      <div>
+        <div class="user-name" id="sidebarName">Admin</div>
+        <div class="user-role">Administrator</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Admin Panel</div>
+      <div class="page-sub" id="adminSub">Loading data...</div>
+    </div>
+    <span class="admin-badge">🔴 Admin Access</span>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-label">Total Users</div>
+      <div class="stat-value skeleton-block" id="statUsers" style="width:50px;height:32px;border-radius:6px"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Total Tasks</div>
+      <div class="stat-value skeleton-block" id="statTasks" style="width:50px;height:32px;border-radius:6px"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📁</div>
+      <div class="stat-label">Total Resources</div>
+      <div class="stat-value skeleton-block" id="statResources" style="width:50px;height:32px;border-radius:6px"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📚</div>
+      <div class="stat-label">Total Topics</div>
+      <div class="stat-value skeleton-block" id="statTopics" style="width:50px;height:32px;border-radius:6px"></div>
+    </div>
+  </div>
+
+  <!-- Users table -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-title">All Users</div>
+      <span class="user-count" id="userCount">Loading...</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+          <tr><td colspan="5" class="empty-state">Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- View User Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">User Details</div>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="{{ url_for('static', filename='js/dotfield.js') }}"></script>
+<script>
+  initDotField('dot-canvas', {
+    gradientFrom: 'rgba(239, 68, 68, 0.65)',
+    gradientTo:   'rgba(180, 80, 80, 0.35)',
+  });
+
+  let allUsers = [];
+
+  // ── Load user (sidebar) ──
+  function loadUser() {
+    fetch('/api/profile').then(r => r.json()).then(data => {
+      if (data.name) {
+        const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('sidebarAvatar').textContent = initials;
+        document.getElementById('sidebarName').textContent   = data.name;
+      }
+    }).catch(() => {});
+  }
+
+  // ── Load stats ──
+  async function loadStats() {
+    try {
+      const res  = await fetch('/api/admin/stats');
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Failed to load stats', 'error'); return; }
+      document.getElementById('statUsers').outerHTML     = `<div class="stat-value" id="statUsers">${data.total_users}</div>`;
+      document.getElementById('statTasks').outerHTML     = `<div class="stat-value" id="statTasks">${data.total_tasks}</div>`;
+      document.getElementById('statResources').outerHTML = `<div class="stat-value" id="statResources">${data.total_resources}</div>`;
+      document.getElementById('statTopics').outerHTML    = `<div class="stat-value" id="statTopics">${data.total_topics}</div>`;
+    } catch (e) {
+      showToast('Failed to load stats', 'error');
+    }
+  }
+
+  // ── Load users ──
+  async function loadUsers() {
+    try {
+      const res  = await fetch('/api/admin/users');
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Failed to load users', 'error'); return; }
+      allUsers = data.users;
+      renderUsers();
+    } catch (e) {
+      showToast('Failed to load users', 'error');
+    }
+  }
+
+  // ── Render users ──
+  function renderUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    document.getElementById('userCount').textContent = `${allUsers.length} user${allUsers.length !== 1 ? 's' : ''}`;
+    document.getElementById('adminSub').textContent  = `${allUsers.length} registered user${allUsers.length !== 1 ? 's' : ''}`;
+
+    if (!allUsers.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No users found</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = allUsers.map(u => {
+      const initials  = u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+      const roleBadge = u.role === 'admin'
+        ? `<span class="role-badge role-admin">Admin</span>`
+        : `<span class="role-badge role-user">User</span>`;
+      const joined = new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+
+      return `
+      <tr id="row-${u.id}">
+        <td>
+          <span class="table-avatar">${escHtml(initials)}</span>
+          ${escHtml(u.name)}
+        </td>
+        <td>${escHtml(u.email)}</td>
+        <td>${roleBadge}</td>
+        <td style="color:var(--white-muted)">${joined}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="action-btn" onclick="viewUser(${u.id})">View</button>
+            <button class="action-btn del" onclick="deleteUser(${u.id})">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── View user ──
+  function viewUser(id) {
+    const u = allUsers.find(u => u.id === id);
+    if (!u) return;
+    const joined    = new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const roleBadge = u.role === 'admin'
+      ? `<span class="role-badge role-admin">Admin</span>`
+      : `<span class="role-badge role-user">User</span>`;
+
+    document.getElementById('modalBody').innerHTML = `
+      <div class="detail-row"><span class="detail-label">NAME</span><span class="detail-value">${escHtml(u.name)}</span></div>
+      <div class="detail-row"><span class="detail-label">EMAIL</span><span class="detail-value">${escHtml(u.email)}</span></div>
+      <div class="detail-row"><span class="detail-label">ROLE</span>${roleBadge}</div>
+      <div class="detail-row"><span class="detail-label">USER ID</span><span class="detail-value">#${u.id}</span></div>
+      <div class="detail-row"><span class="detail-label">JOINED</span><span class="detail-value">${joined}</span></div>
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  // ── Delete user ──
+  async function deleteUser(id) {
+    const u = allUsers.find(u => u.id === id);
+    if (!confirm(`Delete user "${u?.name}"? This cannot be undone.`)) return;
+    try {
+      const res  = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        allUsers = allUsers.filter(u => u.id !== id);
+        renderUsers();
+        showToast('User deleted', 'success');
+      } else {
+        showToast(data.error || 'Failed to delete', 'error');
+      }
+    } catch (e) {
+      showToast('Network error', 'error');
+    }
+  }
+
+  // ── Modal helpers ──
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+  function closeModalOutside(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+  // ── Logout ──
+  function handleLogout() {
+    fetch('/logout', { method: 'POST' }).then(() => window.location.href = '/login');
+  }
+
+  // ── Toast ──
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Init ──
+  loadUser();
+  loadStats();
+  loadUsers();
+</script>
+</body>
+</html>

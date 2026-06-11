@@ -144,5 +144,42 @@ def api_profile():
         return jsonify({'name': user['name'], 'email': user['email']})
     return jsonify({'error': 'Not found'}), 404
 
+@app.route('/api/admin/stats')
+def admin_stats():
+    if not session.get('user_id') or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    db = get_db()
+    total_users     = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+    total_tasks     = db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
+    total_resources = db.execute('SELECT COUNT(*) FROM resources').fetchone()[0]
+    total_topics    = db.execute('SELECT COUNT(*) FROM learning_progress').fetchone()[0]
+    return jsonify({
+        'total_users': total_users,
+        'total_tasks': total_tasks,
+        'total_resources': total_resources,
+        'total_topics': total_topics
+    })
+
+@app.route('/api/admin/users')
+def admin_users():
+    if not session.get('user_id') or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    db = get_db()
+    users = db.execute(
+        'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
+    ).fetchall()
+    return jsonify({'users': [dict(u) for u in users]})
+
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+def admin_delete_user(user_id):
+    if not session.get('user_id') or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    if user_id == session.get('user_id'):
+        return jsonify({'error': 'Cannot delete your own account'}), 400
+    db = get_db()
+    db.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    db.commit()
+    return jsonify({'message': 'User deleted'})
+
 if __name__ == '__main__':
     app.run(debug=True)
