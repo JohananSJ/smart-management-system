@@ -5,6 +5,7 @@ from flask_session import Session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
+from flask_wtf.csrf import CSRFProtect
 import logging
 import os
 
@@ -26,6 +27,7 @@ app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH', 10485760)
 # Initialize extensions
 bcrypt = Bcrypt(app)
 Session(app)
+csrf = CSRFProtect(app)
 
 # Rate Limiter 
 limiter = Limiter(
@@ -120,12 +122,6 @@ def resources_page():
         return redirect('/login')
     return render_template('resources/resources.html', active_page='resources')
 
-@app.route('/profile')
-def profile_page():
-    if not session.get('user_id'):
-        return redirect('/login')
-    return render_template('dashboard/profile.html', active_page='profile')
-
 @app.route('/admin')
 def admin_page():
     if not session.get('user_id'):
@@ -205,4 +201,4 @@ def admin_delete_user(user_id):
     return jsonify({'message': 'User deleted'})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

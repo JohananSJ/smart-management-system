@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SMS Dashboard</title>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <style>
@@ -1016,8 +1017,17 @@
   </script>
   <script src="{{ url_for('static', filename='js/dotfield.js') }}"></script>
   <script>
-    initDotField('dot-canvas', {
-      gradientFrom: 'rgba(139, 92, 246, 0.65)',
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options = { }) {
+        options.headers = options.headers || {};
+      if (options.method && options.method !== 'GET') {
+        options.headers['X-CSRFToken'] = csrfToken;
+      }
+      return originalFetch(url, options);
+    };
+      initDotField('dot-canvas', {
+        gradientFrom: 'rgba(139, 92, 246, 0.65)',
       gradientTo: 'rgba(139, 92, 246, 0.35)',
     });
   </script>

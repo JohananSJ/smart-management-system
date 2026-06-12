@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SMS — Register</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     * {
       margin: 0;
@@ -15,21 +17,19 @@
 
     :root {
       --purple: #8B5CF6;
-      --purple-glow: rgba(139,92,246,0.4);
-      --purple-border: rgba(139,92,246,0.6);
-      --white-glass: rgba(255,255,255,0.07);
-      --white-border: rgba(255,255,255,0.15);
-      --white-text: rgba(255,255,255,0.9);
-      --white-muted: rgba(255,255,255,0.45);
+      --purple-glow: rgba(139, 92, 246, 0.4);
+      --purple-border: rgba(139, 92, 246, 0.6);
+      --white-glass: rgba(255, 255, 255, 0.07);
+      --white-border: rgba(255, 255, 255, 0.15);
+      --white-text: rgba(255, 255, 255, 0.9);
+      --white-muted: rgba(255, 255, 255, 0.45);
     }
 
     body {
       min-height: 100vh;
-      background: radial-gradient(
-        ellipse at top,
-        rgba(139, 92, 246, 0.08) 0%,
-        #000000 70%
-      );
+      background: radial-gradient(ellipse at top,
+          rgba(139, 92, 246, 0.08) 0%,
+          #000000 70%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -82,38 +82,55 @@
 
     .card {
       width: 380px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 20px;
       padding: 36px 32px;
       backdrop-filter: blur(12px);
       box-shadow:
-        0 8px 32px rgba(0,0,0,0.4),
-        0 2px 8px rgba(0,0,0,0.3);
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.3);
       animation: cardIn 0.5s ease-in-out;
       position: relative;
       overflow: hidden;
       transition: all 0.5s;
     }
 
-    .card:hover { border-color: var(--purple-border); }
-    .card:active { transform: scale(0.98) rotateZ(1.7deg); }
+    .card:hover {
+      border-color: var(--purple-border);
+    }
+
+    .card:active {
+      transform: scale(0.98) rotateZ(1.7deg);
+    }
 
     .card::after {
       content: '';
       position: absolute;
-      top: -50%; left: -60%;
-      width: 30%; height: 200%;
-      background: rgba(255,255,255,0.04);
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: rgba(255, 255, 255, 0.04);
       transform: skewX(-20deg);
       transition: left 0.6s ease;
       pointer-events: none;
     }
-    .card:hover::after { left: 130%; }
+
+    .card:hover::after {
+      left: 130%;
+    }
 
     @keyframes cardIn {
-      from { transform: rotateX(-30deg); opacity: 0; }
-      to   { transform: rotateX(0deg);  opacity: 1; }
+      from {
+        transform: rotateX(-30deg);
+        opacity: 0;
+      }
+
+      to {
+        transform: rotateX(0deg);
+        opacity: 1;
+      }
     }
 
     .form {
@@ -147,12 +164,12 @@
       width: 100%;
       padding: 12px 16px;
       border-radius: 12px;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(8px);
       box-shadow:
-        inset 2px 5px 10px rgba(0,0,0,0.3),
-        0px 2px 4px rgba(0,0,0,0.3);
+        inset 2px 5px 10px rgba(0, 0, 0, 0.3),
+        0px 2px 4px rgba(0, 0, 0, 0.3);
       color: var(--white-text);
       font-size: 0.9rem;
       font-family: 'Inter', sans-serif;
@@ -162,46 +179,55 @@
       z-index: 1;
     }
 
-    .input::placeholder { color: var(--white-muted); }
+    .input::placeholder {
+      color: var(--white-muted);
+    }
 
     .input:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(139,92,246,0.2);
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
     }
 
     .input:focus {
       border-color: var(--purple-border);
-      box-shadow: 0 0 0 3px var(--purple-glow), inset 2px 5px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 0 0 3px var(--purple-glow), inset 2px 5px 10px rgba(0, 0, 0, 0.3);
       transform: translateY(-2px);
     }
 
     .input-wrap::after {
       content: '';
       position: absolute;
-      top: -50%; left: -60%;
-      width: 30%; height: 200%;
-      background: rgba(255,255,255,0.06);
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: rgba(255, 255, 255, 0.06);
       transform: skewX(-20deg);
       transition: left 0.4s ease;
       pointer-events: none;
       z-index: 2;
     }
-    .input-wrap:hover::after { left: 130%; }
+
+    .input-wrap:hover::after {
+      left: 130%;
+    }
 
     /* Password strength */
     .strength-bar-wrap {
       height: 3px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 10px;
       margin-top: 7px;
       overflow: hidden;
     }
+
     .strength-bar {
       height: 100%;
       width: 0%;
       border-radius: 10px;
       transition: width 0.4s ease, background-color 0.4s ease;
     }
+
     .strength-label {
       font-size: 0.72rem;
       margin-top: 4px;
@@ -239,21 +265,31 @@
       justify-content: center;
       gap: 8px;
     }
+
     .btn-primary:hover {
       transform: scale(1.03);
       box-shadow: 0 6px 28px var(--purple-glow);
     }
-    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
     .btn-primary::after {
       content: '';
       position: absolute;
-      top: -50%; left: -60%;
-      width: 30%; height: 200%;
-      background: rgba(255,255,255,0.15);
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: rgba(255, 255, 255, 0.15);
       transform: skewX(-20deg);
       transition: left 0.4s ease;
     }
-    .btn-primary:hover::after { left: 130%; }
+
+    .btn-primary:hover::after {
+      left: 130%;
+    }
 
     /* Spinner */
     .spinner {
@@ -263,31 +299,91 @@
       width: 1em;
       height: 1em;
     }
-    .spinner.active { display: inline-block; }
+
+    .spinner.active {
+      display: inline-block;
+    }
+
     .spinner .spinner-blade {
       position: absolute;
-      left: 0.4629em; bottom: 0;
-      width: 0.074em; height: 0.2777em;
+      left: 0.4629em;
+      bottom: 0;
+      width: 0.074em;
+      height: 0.2777em;
       border-radius: 0.0555em;
       background-color: transparent;
       transform-origin: center -0.2222em;
       animation: spinner-fade 1s infinite linear;
     }
-    .spinner .spinner-blade:nth-child(1)  { animation-delay: 0s;     transform: rotate(0deg);   }
-    .spinner .spinner-blade:nth-child(2)  { animation-delay: 0.083s; transform: rotate(30deg);  }
-    .spinner .spinner-blade:nth-child(3)  { animation-delay: 0.166s; transform: rotate(60deg);  }
-    .spinner .spinner-blade:nth-child(4)  { animation-delay: 0.249s; transform: rotate(90deg);  }
-    .spinner .spinner-blade:nth-child(5)  { animation-delay: 0.332s; transform: rotate(120deg); }
-    .spinner .spinner-blade:nth-child(6)  { animation-delay: 0.415s; transform: rotate(150deg); }
-    .spinner .spinner-blade:nth-child(7)  { animation-delay: 0.498s; transform: rotate(180deg); }
-    .spinner .spinner-blade:nth-child(8)  { animation-delay: 0.581s; transform: rotate(210deg); }
-    .spinner .spinner-blade:nth-child(9)  { animation-delay: 0.664s; transform: rotate(240deg); }
-    .spinner .spinner-blade:nth-child(10) { animation-delay: 0.747s; transform: rotate(270deg); }
-    .spinner .spinner-blade:nth-child(11) { animation-delay: 0.83s;  transform: rotate(300deg); }
-    .spinner .spinner-blade:nth-child(12) { animation-delay: 0.913s; transform: rotate(330deg); }
+
+    .spinner .spinner-blade:nth-child(1) {
+      animation-delay: 0s;
+      transform: rotate(0deg);
+    }
+
+    .spinner .spinner-blade:nth-child(2) {
+      animation-delay: 0.083s;
+      transform: rotate(30deg);
+    }
+
+    .spinner .spinner-blade:nth-child(3) {
+      animation-delay: 0.166s;
+      transform: rotate(60deg);
+    }
+
+    .spinner .spinner-blade:nth-child(4) {
+      animation-delay: 0.249s;
+      transform: rotate(90deg);
+    }
+
+    .spinner .spinner-blade:nth-child(5) {
+      animation-delay: 0.332s;
+      transform: rotate(120deg);
+    }
+
+    .spinner .spinner-blade:nth-child(6) {
+      animation-delay: 0.415s;
+      transform: rotate(150deg);
+    }
+
+    .spinner .spinner-blade:nth-child(7) {
+      animation-delay: 0.498s;
+      transform: rotate(180deg);
+    }
+
+    .spinner .spinner-blade:nth-child(8) {
+      animation-delay: 0.581s;
+      transform: rotate(210deg);
+    }
+
+    .spinner .spinner-blade:nth-child(9) {
+      animation-delay: 0.664s;
+      transform: rotate(240deg);
+    }
+
+    .spinner .spinner-blade:nth-child(10) {
+      animation-delay: 0.747s;
+      transform: rotate(270deg);
+    }
+
+    .spinner .spinner-blade:nth-child(11) {
+      animation-delay: 0.83s;
+      transform: rotate(300deg);
+    }
+
+    .spinner .spinner-blade:nth-child(12) {
+      animation-delay: 0.913s;
+      transform: rotate(330deg);
+    }
+
     @keyframes spinner-fade {
-      0%   { background-color: #8B5CF6; }
-      100% { background-color: transparent; }
+      0% {
+        background-color: #8B5CF6;
+      }
+
+      100% {
+        background-color: transparent;
+      }
     }
 
     .error-msg {
@@ -297,7 +393,10 @@
       text-align: center;
       margin-top: -6px;
     }
-    .error-msg.show { display: block; }
+
+    .error-msg.show {
+      display: block;
+    }
 
     .login-link {
       text-align: center;
@@ -305,15 +404,20 @@
       color: var(--white-muted);
       margin-top: 4px;
     }
+
     .login-link a {
       color: var(--purple);
       text-decoration: none;
       font-weight: 500;
       transition: opacity 0.3s;
     }
-    .login-link a:hover { opacity: 0.8; }
+
+    .login-link a:hover {
+      opacity: 0.8;
+    }
   </style>
 </head>
+
 <body>
 
   <!-- Dot field background -->
@@ -379,12 +483,18 @@
         <button type="submit" class="btn-primary" id="submitBtn">
           <span id="btnText">Create Account</span>
           <div class="spinner" id="spinner">
-            <div class="spinner-blade"></div><div class="spinner-blade"></div>
-            <div class="spinner-blade"></div><div class="spinner-blade"></div>
-            <div class="spinner-blade"></div><div class="spinner-blade"></div>
-            <div class="spinner-blade"></div><div class="spinner-blade"></div>
-            <div class="spinner-blade"></div><div class="spinner-blade"></div>
-            <div class="spinner-blade"></div><div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
           </div>
         </button>
 
@@ -399,19 +509,28 @@
 
   <script src="{{ url_for('static', filename='js/dotfield.js') }}"></script>
   <script>
-    initDotField('dot-canvas', {
-    gradientFrom: 'rgba(139, 92, 246, 0.65)',
-    gradientTo:   'rgba(139, 92, 246, 0.35)',
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options = { }) {
+        options.headers = options.headers || {};
+      if (options.method && options.method !== 'GET') {
+        options.headers['X-CSRFToken'] = csrfToken;
+      }
+      return originalFetch(url, options);
+    };
+      initDotField('dot-canvas', {
+        gradientFrom: 'rgba(139, 92, 246, 0.65)',
+      gradientTo:   'rgba(139, 92, 246, 0.35)',
   });
 
-    const passwordInput = document.getElementById('password');
-    const confirmInput  = document.getElementById('confirmPassword');
-    const strengthBar   = document.getElementById('strengthBar');
-    const strengthLabel = document.getElementById('strengthLabel');
-    const matchLabel    = document.getElementById('matchLabel');
+      const passwordInput = document.getElementById('password');
+      const confirmInput  = document.getElementById('confirmPassword');
+      const strengthBar   = document.getElementById('strengthBar');
+      const strengthLabel = document.getElementById('strengthLabel');
+      const matchLabel    = document.getElementById('matchLabel');
 
-    function getStrength(val) {
-      let score = 0;
+      function getStrength(val) {
+        let score = 0;
       if (val.length >= 8)           score++;
       if (/[A-Z]/.test(val))         score++;
       if (/[0-9]/.test(val))         score++;
@@ -422,11 +541,11 @@
     passwordInput.addEventListener('input', () => {
       const score = getStrength(passwordInput.value);
       const map = {
-        0: { w: '0%',   color: 'transparent', text: '',       tcolor: '' },
-        1: { w: '25%',  color: '#EF4444',      text: 'Weak',   tcolor: '#EF4444' },
-        2: { w: '50%',  color: '#F59E0B',      text: 'Fair',   tcolor: '#F59E0B' },
-        3: { w: '75%',  color: '#F59E0B',      text: 'Medium', tcolor: '#F59E0B' },
-        4: { w: '100%', color: '#8B5CF6',      text: 'Strong', tcolor: '#8B5CF6' },
+        0: {w: '0%',   color: 'transparent', text: '',       tcolor: '' },
+      1: {w: '25%',  color: '#EF4444',      text: 'Weak',   tcolor: '#EF4444' },
+      2: {w: '50%',  color: '#F59E0B',      text: 'Fair',   tcolor: '#F59E0B' },
+      3: {w: '75%',  color: '#F59E0B',      text: 'Medium', tcolor: '#F59E0B' },
+      4: {w: '100%', color: '#8B5CF6',      text: 'Strong', tcolor: '#8B5CF6' },
       };
       const m = map[score] || map[0];
       strengthBar.style.width           = m.w;
@@ -436,22 +555,22 @@
       checkMatch();
     });
 
-    function checkMatch() {
+      function checkMatch() {
       const p = passwordInput.value;
       const c = confirmInput.value;
-      if (!c) { matchLabel.textContent = ''; return; }
+      if (!c) {matchLabel.textContent = ''; return; }
       if (p === c) {
         matchLabel.textContent = '✓ Passwords match';
-        matchLabel.style.color = '#22C55E';
+      matchLabel.style.color = '#22C55E';
       } else {
         matchLabel.textContent = '✗ Passwords do not match';
-        matchLabel.style.color = '#EF4444';
+      matchLabel.style.color = '#EF4444';
       }
     }
-    confirmInput.addEventListener('input', checkMatch);
+      confirmInput.addEventListener('input', checkMatch);
 
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+        e.preventDefault();
 
       const name     = document.getElementById('name').value.trim();
       const email    = document.getElementById('email').value.trim();
@@ -461,8 +580,8 @@
 
       if (password !== confirm) {
         matchLabel.textContent = '✗ Passwords do not match';
-        matchLabel.style.color = '#EF4444';
-        return;
+      matchLabel.style.color = '#EF4444';
+      return;
       }
 
       document.getElementById('btnText').style.display = 'none';
@@ -472,28 +591,29 @@
 
       try {
         const res  = await fetch('/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, confirm_password: confirm })
+        method: 'POST',
+      headers: {'Content-Type': 'application/json' },
+      body: JSON.stringify({name, email, password, confirm_password: confirm })
         });
-        const data = await res.json();
+      const data = await res.json();
 
-        if (res.ok) {
-          window.location.href = '/dashboard';
+      if (res.ok) {
+        window.location.href = '/dashboard';
         } else {
-          errorMsg.textContent = data.message || 'Registration failed.';
-          errorMsg.classList.add('show');
+        errorMsg.textContent = data.message || 'Registration failed.';
+      errorMsg.classList.add('show');
         }
       } catch (err) {
         errorMsg.textContent = 'Something went wrong. Try again.';
-        errorMsg.classList.add('show');
+      errorMsg.classList.add('show');
       } finally {
         document.getElementById('btnText').style.display = 'inline';
-        document.getElementById('spinner').classList.remove('active');
-        document.getElementById('submitBtn').disabled = false;
+      document.getElementById('spinner').classList.remove('active');
+      document.getElementById('submitBtn').disabled = false;
       }
     });
   </script>
 
 </body>
+
 </html>
