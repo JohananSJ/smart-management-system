@@ -12,5 +12,5 @@ services:
       - FLASK_ENV=production
     volumes:
       - ./database.db:/app/database.db
-      - ./uploads:/app/uploads
+      - ./static/uploads:/app/static/uploads
     restart: unless-stopped

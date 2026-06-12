@@ -10,6 +10,8 @@ auth_bp = Blueprint('auth', __name__)
 bcrypt = Bcrypt()
 logger = logging.getLogger(__name__)
 
+from app import limiter
+
 # Helper: validate email format 
 def is_valid_email(email):
     return re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email)
@@ -30,10 +32,8 @@ def sanitize_input(value):
 
 # POST /register
 @auth_bp.route('/register', methods=['POST'])
+@limiter.limit("10 per hour")
 def register():
-    from app import limiter
-    limiter.limit("10 per hour")(lambda: None)()
-
     data = request.get_json()
 
     # Sanitize inputs
@@ -83,10 +83,8 @@ def register():
 
 # POST /login
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
-    from app import limiter
-    limiter.limit("5 per minute")(lambda: None)()
-
     data = request.get_json()
 
     email    = sanitize_input(data.get('email', '')).lower()

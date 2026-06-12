@@ -132,7 +132,7 @@ def download_resource(resource_id):
         if not resource:
             return jsonify({'message': 'Resource not found'}), 404
 
-        return send_file(resource['file_path'], as_attachment=False)
+        return send_file(resource['file_path'], as_attachment=True)
 
     except Exception as e:
         return jsonify({'message': 'Something went wrong'}), 500

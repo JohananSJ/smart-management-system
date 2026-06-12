@@ -663,6 +663,7 @@
           </svg>
           Resources
         </a>
+        {% if role == 'admin' %}
         <a href="/admin" class="nav-item">
           <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
             <circle cx="12" cy="8" r="4" />
@@ -670,6 +671,7 @@
           </svg>
           Admin
         </a>
+        {% endif %}
       </nav>
       <div class="sidebar-footer">
         <div class="user-info">

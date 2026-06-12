@@ -102,25 +102,25 @@ def register_page():
 def dashboard():
     if not session.get('user_id'):
         return redirect('/login')
-    return render_template('dashboard/dashboard.html', active_page='dashboard')
+    return render_template('dashboard/dashboard.html', active_page='dashboard', role=session.get('user_role'))
 
 @app.route('/tasks-board')
 def tasks_page():
     if not session.get('user_id'):
         return redirect('/login')
-    return render_template('tasks/tasks.html', active_page='tasks')
+    return render_template('tasks/tasks.html', active_page='tasks', role=session.get('user_role'))
 
 @app.route('/learning')
 def learning_page():
     if not session.get('user_id'):
         return redirect('/login')
-    return render_template('learning/learning.html', active_page='learning')
+    return render_template('learning/learning.html', active_page='learning', role=session.get('user_role'))
 
 @app.route('/resources')
 def resources_page():
     if not session.get('user_id'):
         return redirect('/login')
-    return render_template('resources/resources.html', active_page='resources')
+    return render_template('resources/resources.html', active_page='resources', role=session.get('user_role'))
 
 @app.route('/admin')
 def admin_page():
@@ -135,42 +135,51 @@ def api_profile():
     if not session.get('user_id'):
         return jsonify({'error': 'Unauthorized'}), 401
     db = get_db()
-    user = db.execute('SELECT name, email FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-    if user:
-        return jsonify({'name': user['name'], 'email': user['email']})
-    return jsonify({'error': 'Not found'}), 404
+    try:
+        user = db.execute('SELECT name, email FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+        if user:
+            return jsonify({'name': user['name'], 'email': user['email']})
+        return jsonify({'error': 'Not found'}), 404
+    finally:
+        db.close()
 
 @app.route('/api/admin/stats')
 def admin_stats():
     if not session.get('user_id') or session.get('user_role') != 'admin':
         return jsonify({'error': 'Unauthorized'}), 401
     db = get_db()
-    total_users     = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
-    total_tasks     = db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
-    total_resources = db.execute('SELECT COUNT(*) FROM resources').fetchone()[0]
-    total_topics    = db.execute('SELECT COUNT(*) FROM learning_progress').fetchone()[0]
-    return jsonify({
-        'total_users': total_users,
-        'total_tasks': total_tasks,
-        'total_resources': total_resources,
-        'total_topics': total_topics
-    })
+    try:
+        total_users     = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+        total_tasks     = db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
+        total_resources = db.execute('SELECT COUNT(*) FROM resources').fetchone()[0]
+        total_topics    = db.execute('SELECT COUNT(*) FROM learning_progress').fetchone()[0]
+        return jsonify({
+            'total_users': total_users,
+            'total_tasks': total_tasks,
+            'total_resources': total_resources,
+            'total_topics': total_topics
+        })
+    finally:
+        db.close()
 
 @app.route('/api/admin/users')
 def admin_users():
     if not session.get('user_id') or session.get('user_role') != 'admin':
         return jsonify({'error': 'Unauthorized'}), 401
     db = get_db()
-    users = db.execute(
-        'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
-    ).fetchall()
-    def format_user(u):
-        user = dict(u)
-        if user.get('created_at'):
-            user['created_at'] = user['created_at'].replace(' ', 'T') + 'Z'
-        return user
+    try:
+        users = db.execute(
+            'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
+        ).fetchall()
+        def format_user(u):
+            user = dict(u)
+            if user.get('created_at'):
+                user['created_at'] = user['created_at'].replace(' ', 'T') + 'Z'
+            return user
 
-    return jsonify({'users': [format_user(u) for u in users]})
+        return jsonify({'users': [format_user(u) for u in users]})
+    finally:
+        db.close()
 
 @app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
 def admin_delete_user(user_id):
@@ -179,26 +188,29 @@ def admin_delete_user(user_id):
     if user_id == session.get('user_id'):
         return jsonify({'error': 'Cannot delete your own account'}), 400
     db = get_db()
-    user = db.execute('SELECT id FROM users WHERE id = ?', (user_id,)).fetchone()
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-    db.execute('DELETE FROM users WHERE id = ?', (user_id,))
-    db.commit()
+    try:
+        user = db.execute('SELECT id FROM users WHERE id = ?', (user_id,)).fetchone()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
 
-    # Revoke all sessions for deleted user
-    import os, glob
-    session_dir = app.config.get('SESSION_FILE_DIR', 'flask_session')
-    for f in glob.glob(os.path.join(session_dir, '*')):
-        try:
-            import pickle
-            with open(f, 'rb') as sf:
-                data = pickle.load(sf)
-            if data.get('user_id') == user_id:
-                os.remove(f)
-        except Exception:
-            pass
+        # Delete uploaded files from disk
+        resources = db.execute('SELECT file_path FROM resources WHERE user_id = ?', (user_id,)).fetchall()
+        for r in resources:
+            try:
+                os.remove(r['file_path'])
+            except OSError:
+                pass
 
-    return jsonify({'message': 'User deleted'})
+        # Cascade delete related data
+        db.execute('DELETE FROM tasks WHERE user_id = ?', (user_id,))
+        db.execute('DELETE FROM learning_progress WHERE user_id = ?', (user_id,))
+        db.execute('DELETE FROM resources WHERE user_id = ?', (user_id,))
+        db.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        db.commit()
+
+        return jsonify({'message': 'User deleted'})
+    finally:
+        db.close()
 
 if __name__ == '__main__':
     app.run(debug=False)
