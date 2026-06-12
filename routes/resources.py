@@ -66,7 +66,7 @@ def get_resources():
     db = get_db()
     try:
         resources = db.execute(
-            'SELECT * FROM resources WHERE user_id = ? ORDER BY uploaded_at DESC',
+            'SELECT id, file_name, file_path, uploaded_at FROM resources WHERE user_id = ? ORDER BY uploaded_at DESC',
             (user_id,)
         ).fetchall()
 
@@ -88,12 +88,11 @@ def delete_resource(resource_id):
 
     db = get_db()
     try:
-        # Ownership check — IDOR prevention
+        # Ownership check â€” IDOR prevention
         resource = db.execute(
-            'SELECT * FROM resources WHERE id = ? AND user_id = ?',
+            'SELECT id, file_path FROM resources WHERE id = ? AND user_id = ?',
             (resource_id, user_id)
         ).fetchone()
-
         if not resource:
             return jsonify({'message': 'Resource not found'}), 404
 
@@ -125,15 +124,12 @@ def download_resource(resource_id):
     db = get_db()
     try:
         resource = db.execute(
-            'SELECT * FROM resources WHERE id = ? AND user_id = ?',
+            'SELECT id, file_name, file_path FROM resources WHERE id = ? AND user_id = ?',
             (resource_id, user_id)
         ).fetchone()
-
         if not resource:
             return jsonify({'message': 'Resource not found'}), 404
-
         return send_file(resource['file_path'], as_attachment=True)
-
     except Exception as e:
         return jsonify({'message': 'Something went wrong'}), 500
     finally:

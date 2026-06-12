@@ -18,7 +18,7 @@ def get_tasks():
     db = get_db()
     try:
         tasks = db.execute(
-            'SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC',
+            'SELECT id, title, description, priority, due_date, status, created_at FROM tasks WHERE user_id = ? ORDER BY created_at DESC',
             (user_id,)
         ).fetchall()
 
@@ -92,7 +92,7 @@ def update_task(task_id):
     try:
         # Ownership check — IDOR prevention
         task = db.execute(
-            'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
+            'SELECT id, title, description, priority, due_date, status FROM tasks WHERE id = ? AND user_id = ?',
             (task_id, user_id)
         ).fetchone()
 
@@ -151,7 +151,7 @@ def delete_task(task_id):
     try:
         # Ownership check — IDOR prevention
         task = db.execute(
-            'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
+            'SELECT id FROM tasks WHERE id = ? AND user_id = ?',
             (task_id, user_id)
         ).fetchone()
 

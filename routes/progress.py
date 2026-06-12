@@ -17,7 +17,7 @@ def get_progress():
     db = get_db()
     try:
         progress = db.execute(
-            'SELECT * FROM learning_progress WHERE user_id = ? ORDER BY created_at DESC',
+            'SELECT id, topic_name, status, notes, completion_percentage, created_at FROM learning_progress WHERE user_id = ? ORDER BY created_at DESC',
             (user_id,)
         ).fetchall()
 
@@ -89,7 +89,7 @@ def update_progress(progress_id):
     try:
         # Ownership check — IDOR prevention
         progress = db.execute(
-            'SELECT * FROM learning_progress WHERE id = ? AND user_id = ?',
+            'SELECT id, topic_name, status, notes, completion_percentage FROM learning_progress WHERE id = ? AND user_id = ?',
             (progress_id, user_id)
         ).fetchone()
 
@@ -145,7 +145,7 @@ def delete_progress(progress_id):
     try:
         # Ownership check — IDOR prevention
         progress = db.execute(
-            'SELECT * FROM learning_progress WHERE id = ? AND user_id = ?',
+            'SELECT id FROM learning_progress WHERE id = ? AND user_id = ?',
             (progress_id, user_id)
         ).fetchone()
 
