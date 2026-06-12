@@ -39,7 +39,7 @@ limiter = Limiter(
 
 @limiter.request_filter
 def exempt_page_routes():
-    return request.path in ['/my-resources', '/resources-v2', '/dashboard', '/learning', '/tasks-board']
+    return request.path in ['/dashboard', '/learning', '/tasks-board', '/resources', '/admin']
 
 # Logging
 logging.basicConfig(
@@ -48,6 +48,20 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Security headers
+@app.after_request
+def set_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
+        "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; "
+        "script-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:;"
+    )
+    return response
 
 # Error handlers
 @app.errorhandler(429)
@@ -133,20 +147,20 @@ def admin_page():
 @app.route('/api/profile')
 def api_profile():
     if not session.get('user_id'):
-        return jsonify({'error': 'Unauthorized'}), 401
+        return jsonify({'message': 'Unauthorized'}), 401
     db = get_db()
     try:
         user = db.execute('SELECT name, email FROM users WHERE id = ?', (session['user_id'],)).fetchone()
         if user:
             return jsonify({'name': user['name'], 'email': user['email']})
-        return jsonify({'error': 'Not found'}), 404
+        return jsonify({'message': 'Not found'}), 404
     finally:
         db.close()
 
 @app.route('/api/admin/stats')
 def admin_stats():
     if not session.get('user_id') or session.get('user_role') != 'admin':
-        return jsonify({'error': 'Unauthorized'}), 401
+        return jsonify({'message': 'Unauthorized'}), 401
     db = get_db()
     try:
         total_users     = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
@@ -165,7 +179,7 @@ def admin_stats():
 @app.route('/api/admin/users')
 def admin_users():
     if not session.get('user_id') or session.get('user_role') != 'admin':
-        return jsonify({'error': 'Unauthorized'}), 401
+        return jsonify({'message': 'Unauthorized'}), 401
     db = get_db()
     try:
         users = db.execute(
@@ -184,14 +198,14 @@ def admin_users():
 @app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
 def admin_delete_user(user_id):
     if not session.get('user_id') or session.get('user_role') != 'admin':
-        return jsonify({'error': 'Unauthorized'}), 401
+        return jsonify({'message': 'Unauthorized'}), 401
     if user_id == session.get('user_id'):
-        return jsonify({'error': 'Cannot delete your own account'}), 400
+        return jsonify({'message': 'Cannot delete your own account'}), 400
     db = get_db()
     try:
         user = db.execute('SELECT id FROM users WHERE id = ?', (user_id,)).fetchone()
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return jsonify({'message': 'User not found'}), 404
 
         # Delete uploaded files from disk
         resources = db.execute('SELECT file_path FROM resources WHERE user_id = ?', (user_id,)).fetchall()

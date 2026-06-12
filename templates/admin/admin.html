@@ -742,7 +742,7 @@
       try {
         const res = await fetch('/api/admin/stats');
         const data = await res.json();
-        if (!res.ok) { showToast(data.error || 'Failed to load stats', 'error'); return; }
+        if (!res.ok) { showToast(data.message || 'Failed to load stats', 'error'); return; }
         document.getElementById('statUsers').outerHTML = `<div class="stat-value" id="statUsers">${data.total_users}</div>`;
         document.getElementById('statTasks').outerHTML = `<div class="stat-value" id="statTasks">${data.total_tasks}</div>`;
         document.getElementById('statResources').outerHTML = `<div class="stat-value" id="statResources">${data.total_resources}</div>`;
@@ -757,7 +757,7 @@
       try {
         const res = await fetch('/api/admin/users');
         const data = await res.json();
-        if (!res.ok) { showToast(data.error || 'Failed to load users', 'error'); return; }
+        if (!res.ok) { showToast(data.message || 'Failed to load users', 'error'); return; }
         allUsers = data.users;
         renderUsers();
       } catch (e) {
@@ -833,7 +833,7 @@
           renderUsers();
           showToast('User deleted', 'success');
         } else {
-          showToast(data.error || 'Failed to delete', 'error');
+          showToast(data.message || 'Failed to delete', 'error');
         }
       } catch (e) {
         showToast('Network error', 'error');

@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, request, jsonify, session
 from database import get_db
 
@@ -48,11 +49,20 @@ def create_task():
     if not title:
         return jsonify({'message': 'Title is required'}), 400
 
+    if len(title) > 200:
+        return jsonify({'message': 'Title must be 200 characters or less'}), 400
+
+    if len(description) > 2000:
+        return jsonify({'message': 'Description must be 2000 characters or less'}), 400
+
     if priority not in ['low', 'medium', 'high']:
         return jsonify({'message': 'Invalid priority'}), 400
 
     if status not in ['todo', 'in_progress', 'done']:
         return jsonify({'message': 'Invalid status'}), 400
+
+    if due_date and not re.match(r'^\d{4}-\d{2}-\d{2}$', due_date):
+        return jsonify({'message': 'due_date must be in YYYY-MM-DD format'}), 400
 
     db = get_db()
     try:
@@ -100,11 +110,20 @@ def update_task(task_id):
         if not title:
             return jsonify({'message': 'Title is required'}), 400
 
+        if len(title) > 200:
+            return jsonify({'message': 'Title must be 200 characters or less'}), 400
+
+        if description and len(description) > 2000:
+            return jsonify({'message': 'Description must be 2000 characters or less'}), 400
+
         if priority not in ['low', 'medium', 'high']:
             return jsonify({'message': 'Invalid priority'}), 400
 
         if status not in ['todo', 'in_progress', 'done']:
             return jsonify({'message': 'Invalid status'}), 400
+
+        if due_date and not re.match(r'^\d{4}-\d{2}-\d{2}$', due_date):
+            return jsonify({'message': 'due_date must be in YYYY-MM-DD format'}), 400
 
         db.execute(
             '''UPDATE tasks
