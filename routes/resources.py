@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, session, send_file
 from database import get_db
 import os
+import uuid
 from werkzeug.utils import secure_filename
 
 resources_bp = Blueprint('resources', __name__)
@@ -43,13 +44,12 @@ def upload_file():
     db = get_db()
     try:
         # Secure the filename
-        filename  = secure_filename(file.filename)
-        file_path = os.path.join('static', 'uploads', filename)
-
+        filename    = secure_filename(file.filename)
+        unique_name = f"{uuid.uuid4().hex}_{filename}"
+        file_path   = os.path.join('static', 'uploads', unique_name)
         # Save file
         file.save(file_path)
-
-        # Save to database
+        # Save to database (original name for display, unique path for storage)
         db.execute(
             'INSERT INTO resources (user_id, file_name, file_path) VALUES (?, ?, ?)',
             (user_id, filename, file_path)
