@@ -3,6 +3,8 @@ from database import get_db
 
 progress_bp = Blueprint('progress', __name__)
 
+from app import limiter
+
 # Helper: check if user is logged in 
 def login_required():
     return session.get('user_id')
@@ -32,6 +34,7 @@ def get_progress():
 
 # POST /progress 
 @progress_bp.route('/progress', methods=['POST'])
+@limiter.limit("30 per minute")
 def create_progress():
     user_id = login_required()
     if not user_id:
@@ -80,6 +83,7 @@ def create_progress():
 
 # PUT /progress/<id> 
 @progress_bp.route('/progress/<int:progress_id>', methods=['PUT'])
+@limiter.limit("30 per minute")
 def update_progress(progress_id):
     user_id = login_required()
     if not user_id:
@@ -136,6 +140,7 @@ def update_progress(progress_id):
         db.close()
 # DELETE /progress/<id>
 @progress_bp.route('/progress/<int:progress_id>', methods=['DELETE'])
+@limiter.limit("30 per minute")
 def delete_progress(progress_id):
     user_id = login_required()
     if not user_id:

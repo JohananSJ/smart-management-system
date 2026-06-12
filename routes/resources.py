@@ -6,6 +6,8 @@ from werkzeug.utils import secure_filename
 
 resources_bp = Blueprint('resources', __name__)
 
+from app import limiter
+
 # Allowed file types
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt'}
 
@@ -25,6 +27,7 @@ def allowed_file(filename):
 
 # POST /upload 
 @resources_bp.route('/upload', methods=['POST'])
+@limiter.limit("30 per minute")
 def upload_file():
     user_id = login_required()
     if not user_id:
@@ -88,6 +91,7 @@ def get_resources():
 
 # DELETE /resources/<id>
 @resources_bp.route('/api/resources/<int:resource_id>', methods=['DELETE'])
+@limiter.limit("30 per minute")
 def delete_resource(resource_id):
     user_id = login_required()
     if not user_id:

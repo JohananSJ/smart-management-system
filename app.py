@@ -153,6 +153,7 @@ def admin_page():
     return render_template('admin/admin.html', active_page='admin')
 
 @app.route('/api/profile')
+@limiter.limit("60 per minute")
 def api_profile():
     if not session.get('user_id'):
         return jsonify({'message': 'Unauthorized'}), 401

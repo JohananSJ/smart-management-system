@@ -4,6 +4,8 @@ from database import get_db
 
 tasks_bp = Blueprint('tasks', __name__)
 
+from app import limiter
+
 # ── Helper: check if user is logged in ─────────────────────────────────────────
 def login_required():
     return session.get('user_id')
@@ -33,6 +35,7 @@ def get_tasks():
 
 # ── POST /tasks ────────────────────────────────────────────────────────────────
 @tasks_bp.route('/tasks', methods=['POST'])
+@limiter.limit("30 per minute")
 def create_task():
     user_id = login_required()
     if not user_id:
@@ -83,6 +86,7 @@ def create_task():
 
 # ── PUT /tasks/<id> ────────────────────────────────────────────────────────────
 @tasks_bp.route('/tasks/<int:task_id>', methods=['PUT'])
+@limiter.limit("30 per minute")
 def update_task(task_id):
     user_id = login_required()
     if not user_id:
@@ -142,6 +146,7 @@ def update_task(task_id):
 
 # ── DELETE /tasks/<id> ─────────────────────────────────────────────────────────
 @tasks_bp.route('/tasks/<int:task_id>', methods=['DELETE'])
+@limiter.limit("30 per minute")
 def delete_task(task_id):
     user_id = login_required()
     if not user_id:
