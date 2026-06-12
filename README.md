@@ -1,33 +1,34 @@
 # SMS — Smart Management System
 
-A web app built with Flask + SQLite + HTML/CSS/JS.
+A full-stack web application built with Flask, SQLite, and vanilla HTML/CSS/JS.
 
 ## Tech Stack
 - Backend: Python Flask, SQLite
 - Frontend: HTML, CSS, JavaScript (no frameworks)
-- Security: bcrypt, flask-session, rate limiting, IDOR prevention, input validation
+- Security: bcrypt, Flask-Session, rate limiting, IDOR prevention, input validation
 
 ## Features
--  Login & Register with password strength meter
--  Dashboard with stats, streak tracker, recent activity
--  Tasks — Kanban board (To Do, In Progress, Done)
--  Learning Tracker — topic progress, notes
--  Resource Upload — drag & drop, file cards, filters
--  Admin Panel — (in progress)
+- Login and Register with password strength meter
+- Dashboard with stats, streak tracker and recent activity
+- Tasks — Kanban board (To Do, In Progress, Done)
+- Learning Tracker — topic progress tracking and notes
+- Resource Upload — drag and drop, file cards, filters
+- Admin Panel — user management, system stats
 
 ## Database
 SQLite with 4 tables:
-- `users` — auth and profile
+- `users` — authentication and profile
 - `tasks` — task management
 - `learning_progress` — topic tracking
 - `resources` — file uploads
 
 ## Security
 - Passwords hashed with bcrypt
-- Session-based auth
-- Rate limiting on login/register
+- Session-based authentication
+- Rate limiting on login and register
 - IDOR prevention on all routes
-- Input validation and logging
+- Input validation and sanitization
+- Activity logging
 
 ## API Endpoints
 | Method | Endpoint | Description |
@@ -46,6 +47,9 @@ SQLite with 4 tables:
 | POST | `/upload` | Upload file |
 | GET | `/api/resources` | Get all files |
 | DELETE | `/api/resources/<id>` | Delete file |
+| GET | `/api/admin/stats` | Get system stats |
+| GET | `/api/admin/users` | Get all users |
+| DELETE | `/api/admin/users/<id>` | Delete user |
 
 ## Pages
 | Route | Page |
@@ -58,13 +62,21 @@ SQLite with 4 tables:
 | `/resources` | Resource Upload |
 | `/admin` | Admin Panel |
 
+## Running the App
+```bash
+pip install -r requirements.txt
+python -m flask run --port 5001
+```
+
 ## Progress
-- Day 17 — Backend (completed)
-- Day 18 — Login, Register, Dashboard (completed)
-- Day 19 — Tasks, Learning Tracker, dot field (completed)
-- Day 20 — Resources page, dashboard fixes (completed)
-- Day 21 — Admin Panel (yet to complete)
+-  Backend completed
+-  Login, Register, Dashboard completed
+-  Tasks, Learning Tracker completed
+-  Resources page completed
+-  Admin Panel completed
 
 ## Notes
-- App runs on port 5001 (`flask run --port 5001`)
+- App runs on port 5001 due to Windows port 5000 cache issue
+- Admin access requires role to be set to admin in the database
 - Port 5000 has Windows cache issue
+- SQLite database file is excluded from version control

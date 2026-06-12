@@ -144,5 +144,65 @@ def api_profile():
         return jsonify({'name': user['name'], 'email': user['email']})
     return jsonify({'error': 'Not found'}), 404
 
+@app.route('/api/admin/stats')
+def admin_stats():
+    if not session.get('user_id') or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    db = get_db()
+    total_users     = db.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+    total_tasks     = db.execute('SELECT COUNT(*) FROM tasks').fetchone()[0]
+    total_resources = db.execute('SELECT COUNT(*) FROM resources').fetchone()[0]
+    total_topics    = db.execute('SELECT COUNT(*) FROM learning_progress').fetchone()[0]
+    return jsonify({
+        'total_users': total_users,
+        'total_tasks': total_tasks,
+        'total_resources': total_resources,
+        'total_topics': total_topics
+    })
+
+@app.route('/api/admin/users')
+def admin_users():
+    if not session.get('user_id') or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    db = get_db()
+    users = db.execute(
+        'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
+    ).fetchall()
+    def format_user(u):
+        user = dict(u)
+        if user.get('created_at'):
+            user['created_at'] = user['created_at'].replace(' ', 'T') + 'Z'
+        return user
+
+    return jsonify({'users': [format_user(u) for u in users]})
+
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+def admin_delete_user(user_id):
+    if not session.get('user_id') or session.get('user_role') != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 401
+    if user_id == session.get('user_id'):
+        return jsonify({'error': 'Cannot delete your own account'}), 400
+    db = get_db()
+    user = db.execute('SELECT id FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    db.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    db.commit()
+
+    # Revoke all sessions for deleted user
+    import os, glob
+    session_dir = app.config.get('SESSION_FILE_DIR', 'flask_session')
+    for f in glob.glob(os.path.join(session_dir, '*')):
+        try:
+            import pickle
+            with open(f, 'rb') as sf:
+                data = pickle.load(sf)
+            if data.get('user_id') == user_id:
+                os.remove(f)
+        except Exception:
+            pass
+
+    return jsonify({'message': 'User deleted'})
+
 if __name__ == '__main__':
     app.run(debug=True)
