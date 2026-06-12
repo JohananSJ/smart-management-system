@@ -11,9 +11,16 @@ ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt'}
 def login_required():
     return session.get('user_id')
 
+DANGEROUS_EXTENSIONS = {'php', 'py', 'js', 'sh', 'exe', 'bat', 'cmd', 'ps1', 'html', 'htm'}
+
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    if '.' not in filename:
+        return False
+    parts = filename.lower().split('.')
+    # Reject if any segment before the final extension is dangerous
+    if any(p in DANGEROUS_EXTENSIONS for p in parts[:-1]):
+        return False
+    return parts[-1] in ALLOWED_EXTENSIONS
 
 # POST /upload 
 @resources_bp.route('/upload', methods=['POST'])
