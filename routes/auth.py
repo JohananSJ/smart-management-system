@@ -1,17 +1,13 @@
-from flask import Blueprint, request, jsonify, session, current_app
+from flask import Blueprint, request, jsonify, session
 from database import get_db
-from flask_bcrypt import Bcrypt
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 import re
 import logging
 import secrets
 
 auth_bp = Blueprint('auth', __name__)
-bcrypt = Bcrypt()
 logger = logging.getLogger(__name__)
 
-from app import limiter
+from app import limiter, bcrypt
 
 # Helper: validate email format 
 def is_valid_email(email):

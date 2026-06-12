@@ -34,7 +34,7 @@ limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=["2000 per day", "500 per hour"],
-    storage_uri="memory://"
+    storage_uri="redis://redis:6379"
 )
 
 @limiter.request_filter
@@ -71,6 +71,14 @@ def rate_limit_exceeded(e):
 
 @app.errorhandler(404)
 def not_found(e):
+    if request.accept_mimetypes.accept_html and not request.path.startswith('/api/'):
+        return '''<!DOCTYPE html>
+<html><head><title>404 Not Found</title></head>
+<body style="font-family:'Inter',sans-serif;text-align:center;padding:80px;background:#000;color:#fff;">
+<h1 style="font-size:48px;">404</h1>
+<p style="color:rgba(255,255,255,0.6);">The page you're looking for doesn't exist.</p>
+<a href="/dashboard" style="color:#8B5CF6;">Go to Dashboard</a>
+</body></html>''', 404
     return jsonify({'message': 'Route not found'}), 404
 
 @app.errorhandler(500)
