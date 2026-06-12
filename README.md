@@ -7,6 +7,20 @@ A full-stack web application built with Flask, SQLite, and vanilla HTML/CSS/JS.
 - Frontend: HTML, CSS, JavaScript (no frameworks)
 - Security: bcrypt, Flask-Session, rate limiting, IDOR prevention, input validation
 
+## For running the App
+
+### Option 1 — Local (Python)
+```bash
+pip install -r requirements.txt
+python -m flask run --port 5001
+```
+
+### Option 2 — Docker
+```bash
+docker-compose up --build
+```
+Visit `http://localhost:5001`
+
 ## Features
 - Login and Register with password strength meter
 - Dashboard with stats, streak tracker and recent activity
@@ -61,12 +75,6 @@ SQLite with 4 tables:
 | `/learning` | Learning Tracker |
 | `/resources` | Resource Upload |
 | `/admin` | Admin Panel |
-
-## Running the App
-```bash
-pip install -r requirements.txt
-python -m flask run --port 5001
-```
 
 ## Progress
 -  Backend completed
