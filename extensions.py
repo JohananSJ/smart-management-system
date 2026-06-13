@@ -8,5 +8,5 @@ bcrypt = Bcrypt()
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["2000 per day", "500 per hour"],
-    storage_uri=os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+    storage_uri=os.getenv("REDIS_URL", "memory://")
 )
