@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 resources_bp = Blueprint('resources', __name__)
 
-from app import limiter
+from extensions import limiter
 
 # Allowed file types
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt'}

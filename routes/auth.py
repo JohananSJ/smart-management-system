@@ -7,7 +7,7 @@ import secrets
 auth_bp = Blueprint('auth', __name__)
 logger = logging.getLogger(__name__)
 
-from app import limiter, bcrypt
+from extensions import limiter, bcrypt
 
 # Helper: validate email format 
 def is_valid_email(email):
