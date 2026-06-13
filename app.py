@@ -1,9 +1,7 @@
 from flask import Flask, jsonify, session, render_template, redirect, url_for, make_response, request
 from database import get_db
-from flask_bcrypt import Bcrypt
 from flask_session import Session
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from extensions import bcrypt, limiter
 from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFProtect
 import logging
@@ -25,17 +23,10 @@ app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutes
 app.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH', 10485760))
 
 # Initialize extensions
-bcrypt = Bcrypt(app)
+bcrypt.init_app(app)
+limiter.init_app(app)
 Session(app)
 csrf = CSRFProtect(app)
-
-# Rate Limiter 
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["2000 per day", "500 per hour"],
-    storage_uri="redis://redis:6379"
-)
 
 @limiter.request_filter
 def exempt_page_routes():

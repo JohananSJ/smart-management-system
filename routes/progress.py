@@ -3,7 +3,7 @@ from database import get_db
 
 progress_bp = Blueprint('progress', __name__)
 
-from app import limiter
+from extensions import limiter
 
 # Helper: check if user is logged in 
 def login_required():

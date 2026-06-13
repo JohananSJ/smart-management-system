@@ -4,7 +4,7 @@ from database import get_db
 
 tasks_bp = Blueprint('tasks', __name__)
 
-from app import limiter
+from extensions import limiter
 
 # ── Helper: check if user is logged in ─────────────────────────────────────────
 def login_required():

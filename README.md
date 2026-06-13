@@ -88,3 +88,15 @@ SQLite with 4 tables:
 - Admin access requires role to be set to admin in the database
 - Port 5000 has Windows cache issue
 - SQLite database file is excluded from version control
+
+## Admin Role Assignment
+
+To promote a user to admin, run the following SQL against the application database:
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = '<user_email>';
+```
+
+> Note: The previous one-time scripts `fix_admin.py` and `check_role.py` have been removed.
+> Use the SQL above (e.g. via `sqlite3 database.db` or your DB client) for admin role
+> management until a proper CLI/admin command is added.
