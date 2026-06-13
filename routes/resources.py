@@ -1,9 +1,12 @@
 from flask import Blueprint, request, jsonify, session, send_file
 from database import get_db
 import os
+import uuid
 from werkzeug.utils import secure_filename
 
 resources_bp = Blueprint('resources', __name__)
+
+from app import limiter
 
 # Allowed file types
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt'}
@@ -11,12 +14,20 @@ ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt'}
 def login_required():
     return session.get('user_id')
 
+DANGEROUS_EXTENSIONS = {'php', 'py', 'js', 'sh', 'exe', 'bat', 'cmd', 'ps1', 'html', 'htm'}
+
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    if '.' not in filename:
+        return False
+    parts = filename.lower().split('.')
+    # Reject if any segment before the final extension is dangerous
+    if any(p in DANGEROUS_EXTENSIONS for p in parts[:-1]):
+        return False
+    return parts[-1] in ALLOWED_EXTENSIONS
 
 # POST /upload 
 @resources_bp.route('/upload', methods=['POST'])
+@limiter.limit("30 per minute")
 def upload_file():
     user_id = login_required()
     if not user_id:
@@ -36,13 +47,12 @@ def upload_file():
     db = get_db()
     try:
         # Secure the filename
-        filename  = secure_filename(file.filename)
-        file_path = os.path.join('static', 'uploads', filename)
-
+        filename    = secure_filename(file.filename)
+        unique_name = f"{uuid.uuid4().hex}_{filename}"
+        file_path   = os.path.join('static', 'uploads', unique_name)
         # Save file
         file.save(file_path)
-
-        # Save to database
+        # Save to database (original name for display, unique path for storage)
         db.execute(
             'INSERT INTO resources (user_id, file_name, file_path) VALUES (?, ?, ?)',
             (user_id, filename, file_path)
@@ -66,7 +76,7 @@ def get_resources():
     db = get_db()
     try:
         resources = db.execute(
-            'SELECT * FROM resources WHERE user_id = ? ORDER BY uploaded_at DESC',
+            'SELECT id, file_name, file_path, uploaded_at FROM resources WHERE user_id = ? ORDER BY uploaded_at DESC',
             (user_id,)
         ).fetchall()
 
@@ -81,6 +91,7 @@ def get_resources():
 
 # DELETE /resources/<id>
 @resources_bp.route('/api/resources/<int:resource_id>', methods=['DELETE'])
+@limiter.limit("30 per minute")
 def delete_resource(resource_id):
     user_id = login_required()
     if not user_id:
@@ -88,12 +99,11 @@ def delete_resource(resource_id):
 
     db = get_db()
     try:
-        # Ownership check — IDOR prevention
+        # Ownership check â€” IDOR prevention
         resource = db.execute(
-            'SELECT * FROM resources WHERE id = ? AND user_id = ?',
+            'SELECT id, file_path FROM resources WHERE id = ? AND user_id = ?',
             (resource_id, user_id)
         ).fetchone()
-
         if not resource:
             return jsonify({'message': 'Resource not found'}), 404
 
@@ -125,15 +135,12 @@ def download_resource(resource_id):
     db = get_db()
     try:
         resource = db.execute(
-            'SELECT * FROM resources WHERE id = ? AND user_id = ?',
+            'SELECT id, file_name, file_path FROM resources WHERE id = ? AND user_id = ?',
             (resource_id, user_id)
         ).fetchone()
-
         if not resource:
             return jsonify({'message': 'Resource not found'}), 404
-
         return send_file(resource['file_path'], as_attachment=True)
-
     except Exception as e:
         return jsonify({'message': 'Something went wrong'}), 500
     finally:

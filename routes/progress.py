@@ -3,6 +3,8 @@ from database import get_db
 
 progress_bp = Blueprint('progress', __name__)
 
+from app import limiter
+
 # Helper: check if user is logged in 
 def login_required():
     return session.get('user_id')
@@ -17,7 +19,7 @@ def get_progress():
     db = get_db()
     try:
         progress = db.execute(
-            'SELECT * FROM learning_progress WHERE user_id = ? ORDER BY created_at DESC',
+            'SELECT id, topic_name, status, notes, completion_percentage, created_at FROM learning_progress WHERE user_id = ? ORDER BY created_at DESC',
             (user_id,)
         ).fetchall()
 
@@ -32,6 +34,7 @@ def get_progress():
 
 # POST /progress 
 @progress_bp.route('/progress', methods=['POST'])
+@limiter.limit("30 per minute")
 def create_progress():
     user_id = login_required()
     if not user_id:
@@ -47,11 +50,19 @@ def create_progress():
     if not topic_name:
         return jsonify({'message': 'Topic name is required'}), 400
 
+    if len(topic_name) > 200:
+        return jsonify({'message': 'Topic name must be 200 characters or less'}), 400
+
+    if len(notes) > 2000:
+        return jsonify({'message': 'Notes must be 2000 characters or less'}), 400
+
     if status not in ['in_progress', 'completed']:
         return jsonify({'message': 'Invalid status'}), 400
 
-    if not isinstance(completion_percentage, int) or not 0 <= completion_percentage <= 100:
+    if not isinstance(completion_percentage, (int, float)) or not 0 <= completion_percentage <= 100:
         return jsonify({'message': 'Completion percentage must be between 0 and 100'}), 400
+
+    completion_percentage = int(completion_percentage)
 
     db = get_db()
     try:
@@ -72,6 +83,7 @@ def create_progress():
 
 # PUT /progress/<id> 
 @progress_bp.route('/progress/<int:progress_id>', methods=['PUT'])
+@limiter.limit("30 per minute")
 def update_progress(progress_id):
     user_id = login_required()
     if not user_id:
@@ -81,7 +93,7 @@ def update_progress(progress_id):
     try:
         # Ownership check — IDOR prevention
         progress = db.execute(
-            'SELECT * FROM learning_progress WHERE id = ? AND user_id = ?',
+            'SELECT id, topic_name, status, notes, completion_percentage FROM learning_progress WHERE id = ? AND user_id = ?',
             (progress_id, user_id)
         ).fetchone()
 
@@ -98,11 +110,19 @@ def update_progress(progress_id):
         if not topic_name:
             return jsonify({'message': 'Topic name is required'}), 400
 
+        if len(topic_name) > 200:
+            return jsonify({'message': 'Topic name must be 200 characters or less'}), 400
+
+        if notes and len(notes) > 2000:
+            return jsonify({'message': 'Notes must be 2000 characters or less'}), 400
+
         if status not in ['in_progress', 'completed']:
             return jsonify({'message': 'Invalid status'}), 400
 
-        if not isinstance(completion_percentage, int) or not 0 <= completion_percentage <= 100:
+        if not isinstance(completion_percentage, (int, float)) or not 0 <= completion_percentage <= 100:
             return jsonify({'message': 'Completion percentage must be between 0 and 100'}), 400
+
+        completion_percentage = int(completion_percentage)
 
         db.execute(
             '''UPDATE learning_progress
@@ -118,3 +138,34 @@ def update_progress(progress_id):
         return jsonify({'message': 'Something went wrong'}), 500
     finally:
         db.close()
+# DELETE /progress/<id>
+@progress_bp.route('/progress/<int:progress_id>', methods=['DELETE'])
+@limiter.limit("30 per minute")
+def delete_progress(progress_id):
+    user_id = login_required()
+    if not user_id:
+        return jsonify({'message': 'Unauthorized'}), 401
+
+    db = get_db()
+    try:
+        # Ownership check — IDOR prevention
+        progress = db.execute(
+            'SELECT id FROM learning_progress WHERE id = ? AND user_id = ?',
+            (progress_id, user_id)
+        ).fetchone()
+
+        if not progress:
+            return jsonify({'message': 'Progress not found'}), 404
+
+        db.execute(
+            'DELETE FROM learning_progress WHERE id = ? AND user_id = ?',
+            (progress_id, user_id)
+        )
+        db.commit()
+
+        return jsonify({'message': 'Progress deleted successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'message': 'Something went wrong'}), 500
+    finally:
+        db.close()        

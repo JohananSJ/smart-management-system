@@ -1,7 +1,10 @@
+import re
 from flask import Blueprint, request, jsonify, session
 from database import get_db
 
 tasks_bp = Blueprint('tasks', __name__)
+
+from app import limiter
 
 # ── Helper: check if user is logged in ─────────────────────────────────────────
 def login_required():
@@ -17,7 +20,7 @@ def get_tasks():
     db = get_db()
     try:
         tasks = db.execute(
-            'SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC',
+            'SELECT id, title, description, priority, due_date, status, created_at FROM tasks WHERE user_id = ? ORDER BY created_at DESC',
             (user_id,)
         ).fetchall()
 
@@ -32,6 +35,7 @@ def get_tasks():
 
 # ── POST /tasks ────────────────────────────────────────────────────────────────
 @tasks_bp.route('/tasks', methods=['POST'])
+@limiter.limit("30 per minute")
 def create_task():
     user_id = login_required()
     if not user_id:
@@ -48,11 +52,20 @@ def create_task():
     if not title:
         return jsonify({'message': 'Title is required'}), 400
 
+    if len(title) > 200:
+        return jsonify({'message': 'Title must be 200 characters or less'}), 400
+
+    if len(description) > 2000:
+        return jsonify({'message': 'Description must be 2000 characters or less'}), 400
+
     if priority not in ['low', 'medium', 'high']:
         return jsonify({'message': 'Invalid priority'}), 400
 
     if status not in ['todo', 'in_progress', 'done']:
         return jsonify({'message': 'Invalid status'}), 400
+
+    if due_date and not re.match(r'^\d{4}-\d{2}-\d{2}$', due_date):
+        return jsonify({'message': 'due_date must be in YYYY-MM-DD format'}), 400
 
     db = get_db()
     try:
@@ -73,6 +86,7 @@ def create_task():
 
 # ── PUT /tasks/<id> ────────────────────────────────────────────────────────────
 @tasks_bp.route('/tasks/<int:task_id>', methods=['PUT'])
+@limiter.limit("30 per minute")
 def update_task(task_id):
     user_id = login_required()
     if not user_id:
@@ -82,7 +96,7 @@ def update_task(task_id):
     try:
         # Ownership check — IDOR prevention
         task = db.execute(
-            'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
+            'SELECT id, title, description, priority, due_date, status FROM tasks WHERE id = ? AND user_id = ?',
             (task_id, user_id)
         ).fetchone()
 
@@ -100,11 +114,20 @@ def update_task(task_id):
         if not title:
             return jsonify({'message': 'Title is required'}), 400
 
+        if len(title) > 200:
+            return jsonify({'message': 'Title must be 200 characters or less'}), 400
+
+        if description and len(description) > 2000:
+            return jsonify({'message': 'Description must be 2000 characters or less'}), 400
+
         if priority not in ['low', 'medium', 'high']:
             return jsonify({'message': 'Invalid priority'}), 400
 
         if status not in ['todo', 'in_progress', 'done']:
             return jsonify({'message': 'Invalid status'}), 400
+
+        if due_date and not re.match(r'^\d{4}-\d{2}-\d{2}$', due_date):
+            return jsonify({'message': 'due_date must be in YYYY-MM-DD format'}), 400
 
         db.execute(
             '''UPDATE tasks
@@ -123,6 +146,7 @@ def update_task(task_id):
 
 # ── DELETE /tasks/<id> ─────────────────────────────────────────────────────────
 @tasks_bp.route('/tasks/<int:task_id>', methods=['DELETE'])
+@limiter.limit("30 per minute")
 def delete_task(task_id):
     user_id = login_required()
     if not user_id:
@@ -132,7 +156,7 @@ def delete_task(task_id):
     try:
         # Ownership check — IDOR prevention
         task = db.execute(
-            'SELECT * FROM tasks WHERE id = ? AND user_id = ?',
+            'SELECT id FROM tasks WHERE id = ? AND user_id = ?',
             (task_id, user_id)
         ).fetchone()
 

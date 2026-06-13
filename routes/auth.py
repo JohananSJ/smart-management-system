@@ -1,16 +1,13 @@
-from flask import Blueprint, request, jsonify, session, current_app
+from flask import Blueprint, request, jsonify, session
 from database import get_db
-from flask_bcrypt import Bcrypt
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 import re
 import logging
+import secrets
 
 auth_bp = Blueprint('auth', __name__)
-bcrypt = Bcrypt()
 logger = logging.getLogger(__name__)
 
-from app import limiter
+from app import limiter, bcrypt
 
 # Helper: validate email format 
 def is_valid_email(email):
@@ -24,10 +21,6 @@ def is_valid_password(password):
 def sanitize_input(value):
     if not isinstance(value, str):
         return ''
-    # Remove dangerous characters
-    value = value.replace('<', '').replace('>', '')
-    value = value.replace('"', '').replace("'", '')
-    value = value.replace(';', '').replace('--', '')
     return value.strip()
 
 # POST /register
@@ -96,16 +89,19 @@ def login():
     db = get_db()
     try:
         user = db.execute(
-            'SELECT * FROM users WHERE email = ?', (email,)
+            'SELECT id, name, email, password, role FROM users WHERE email = ?', (email,)
         ).fetchone()
 
         if not user or not bcrypt.check_password_hash(user['password'], password):
             logger.warning(f'Failed login attempt for email: {email}')
             return jsonify({'message': 'Invalid email or password'}), 401
 
-        session['user_id']   = user['id']
-        session['user_name'] = user['name']
-        session['user_role'] = user['role']
+        session.clear()
+        session['user_id']    = user['id']
+        session['user_name']  = user['name']
+        session['user_email'] = user['email']
+        session['user_role']  = user['role']
+        session.sid = secrets.token_hex(32)
 
         logger.info(f'Successful login: {email}')
         return jsonify({
@@ -126,7 +122,7 @@ def login():
 # POST /logout 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
-    email = session.get('user_name', 'unknown')
+    email = session.get('user_email', 'unknown')
     session.clear()
     logger.info(f'User logged out: {email}')
     return jsonify({'message': 'Logged out successfully'}), 200
